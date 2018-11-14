@@ -1,0 +1,2243 @@
+
+
+
+```{r 'check_ps', include=FALSE}
+
+user.name = '' # set to your user name
+
+library(RTutor)
+check.problem.set('ECars', ps.dir, ps.file, user.name=user.name, reset=FALSE)
+
+# Run the Addin 'Check Problemset' to save and check your solution
+```
+
+# Problem Set: Environmental Costs and Benefits from Driving Electric Cars
+
+Author: Felix Stickel
+
+
+
+## Exercise Overview
+
+
+Welcome to this interactive analysis, which is part of my master's thesis at Ulm University. The market for electric vehicles is continuing to grow and many traditional car manufacturers offer an increasing variety of pure electric cars. An argument which is often made in favor of electric cars are their supposed environmental benefits. During the following exercises, you will examine the environmental damages of electric and gasoline vehicles driven in different geographic locations of the United States. The analysis is based on the article ["Are There Environmental Benefits from Driving Electric Vehicles? The Importance of Local Factors"](https://www.aeaweb.org/articles?id=10.1257/aer.20150897) by Stephen P. Holland, Erin T. Mansur, Nicholas Z. Muller and Andrew J. Yates (2016). I will refer to this article simply as "Holland et al." from now on.
+
+Holland et al. found that electric cars can indeed have environmental benefits when compared to gasoline cars, but only in areas with high population densities and relatively clean electricity grids. On average, electric vehicle damages turn out to be higher than gasoline vehicle damages when considering the whole contiguous U.S. Optimal purchase subsidies on the state level range from -4,964 dollars in North Dakota to 2,785 dollars in California. Electric vehicle damages are exported to other states to a considerable degree. Holland et al. found some empirical evidence that local governments only consider native damages, which occur within their borders, rather than full damages. They conclude that optimal purchase subsidies should be differentiated by location, but set at the federal level.
+
+You will derive most results interactively using the programming language R. This means that you have to enter your own R code from time to time. This way, you can enhance your R programming skills while reproducing the results from an interesting economic article. I will explain some R functions when you need them, but you are expected to have basic R skills. If you need an introduction to programming in R, you can, for example, have a look at [R for Beginners](https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf). Below, you can find more information on how to solve the problem set. If you are ready, proceed to Exercise 1 and get started!
+
+
+### Contents
+
+
+$\qquad$  Overview
+  
+$\qquad$  1 Examining Gasoline Vehicle Damages
+
+$\qquad$  2 Examining Electric Vehicle Damages
+
+$\qquad$ $\qquad$ 2.1 Energy Consumption of Electric Vehicles
+
+$\qquad$ $\qquad$ 2.2 Econometric Analysis: Marginal Emissions from Electricity Use
+
+$\qquad$ $\qquad$ 2.3 Mapping Emissions into Damages: The AP2 Model
+
+$\qquad$ $\qquad$ 2.4 Calculating Electric Vehicle Damages
+
+$\qquad$ $\qquad$ 2.5 Analyzing Electric Vehicle Damages
+
+$\qquad$  3 Comparing Gasoline and Electric Vehicle Damages
+
+$\qquad$  4.1 Theoretical Model on Electric Vehicle Subsidies
+
+$\qquad$  4.2 Examining Electric Vehicle Subsidies
+
+$\qquad$  5 Pollution Export
+
+$\qquad$  6 Sensitivity Analysis
+
+$\qquad$  7 Caveats
+
+$\qquad$  8 Conclusion
+
+$\qquad$ References
+
+
+### Outline
+
+
+In *Exercise 1*, you are introduced to some basic principles of our analysis and the different pollutants leading to environmental damages. We examine a data set on gasoline vehicle damages and analyze how these damages differ between the locations in which the cars are driven.
+In *Exercise 2*, we derive electric vehicle damages over the course of several steps. First, we determine how much energy an electric car uses to drive one mile. Second, we estimate the emissions caused by the consumption of an additional kilowatt hour of electricity in a specific area. Third, I explain how these emissions can be mapped into monetary damages. Fourth, we assume an electric vehicle charging profile and combine the  previous results. Last, we analyze the resulting electric vehicle damage values similar to Exercise 1.
+*Exercise 3* compares the environmental damages caused by gasoline and electric vehicles to show if and in which locations it is beneficial to drive electric instead of gasoline powered cars.
+In *Exercise 4*, we then try to figure out appropriate electric vehicle policy setting. First, a theoretical discrete choice model is introduced and then we calculate optimal purchase subsidies for different locations. 
+*Exercise 5* deals with the effects of pollution export and how it might impact electric vehicle policy making.
+To test the robustness of our results, we perform a sensitivity analysis in *Exercise 6*, where we alter different model parameters and compare the outcomes.
+In *Exercise 7*, we discuss some factors which further influence environmental benefits of electric vehicles, but were not part of our analysis.
+Finally, *Exercise 8* concludes by summarizing our results.
+
+
+### How to solve this problem set
+
+
+Solving the problem set is pretty straightforward. Here is a short explanation of the elements you may encounter.
+
+- Code Chunks: They are used to enter and run R code. You have to solve a code chunk before you can interact with the following one. To interact with code chunks, there are several buttons:
+
+    + `edit`: After pressing this button, you can enter your R code into the chunk. You always have to press the edit button on the first code chunk of an exercise.
+    + `check`: After entering your solution, you have to press check to run your code and check whether your answer is correct. Sometimes, the correct answer is already entered in the chunk, so you only have to press check.
+    + `hint`: If you need help solving the chunk, you can press this button to get a hint.
+    + `run chunk`: This button runs the code chunk without checking whether it is correct.
+    + `data`: This button is a link to the Data Explorer, in which you can view data sets and look at variable descriptions.
+    + `solution`: Pressing this button enters the sample solution into the code chunk.
+
+- Tasks: Whenever you are required to interact with a code chunk, the text which succeeds "**Task:**" will tell you what you have to do.
+
+- Quizzes: It is not necessary to solve the quizzes to be able to continue with the problem set, but they can contribute to your overall understanding of the topic.
+
+- Info Boxes: They contain additional information which is not necessary for solving the problem set, for example explanations of R functions or mathematical proofs.
+
+To navigate through the problem set, you can use the button `Go to next exercise...` at the bottom of the page or the menu bar at the top. It is possible to solve each exercise without solving the previous ones, however you are encouraged to solve the exercises in the specified order as they follow a didactic structure and frequently use data sets which have been derived and analyzed in previous exercises.
+
+
+## Exercise 1 -- Damages of Gasoline Vehicles
+
+
+In this exercise, we will focus on the environmental damages caused by gasoline cars while driving in different locations in the U.S. For that purpose, I will present you with a data set and together we will explore its structure and draw some first conclusions. The data set is provided by Holland et al., who derived it using the "Greenhouse Gases, Regulated Emissions and Energy Use in Transportation" (GREET) model developed by the [Argonne National Laboratory](https://greet.es.anl.gov/) and the [EPA Tier 2 emission standards](https://www.epa.gov/emission-standards-reference-guide/all-epa-emission-standards).
+
+The data set contains pollution damage data for *eleven different gasoline cars*. Holland et al. chose the set of gasoline vehicles to closely match the non-price attributes of eleven pure electric cars featured in the EPA (Environmental Protection Agency) [fuel efficiency database](https://www.epa.gov/fueleconomy) for 2014. If a gasoline-powered version of the electric vehicle model exists, this is the natural choice. For example, the set of electric vehicles contains the 2014 Ford Focus Electric, so the same Ford Focus model, but with a comparable conventional engine, has been chosen for the set of gasoline cars. This selection ensures that we are able to directly compare electric and gasoline vehicle damages in later exercises. Note that during the whole problem set, I will use the terms "car" and "vehicle" interchangeably, as we always refer to the same eleven gasoline and electric cars.
+
+The pollution damage data is *differentiated by the county*, in which the cars are driven. We will see during our analysis that the location has great influence on the environmental damages the cars cause. The data set contains all counties of the contiguous U.S., so for example Alaska or Hawaii are excluded.
+
+To calculate the environmental damages, *five pollutants* have been considered: CO<sub>2</sub> (carbon dioxide), SO<sub>2</sub> (sulfur dioxide), NO<sub>x</sub> (nitrogen oxides), PM<sub>2.5</sub> (particulate matter with a diameter of 2.5 micrometers or less) and VOCs (volatile organic compounds). The greenhouse gas CO<sub>2</sub> is one of the main contributors to the greenhouse effect, which causes damages through global warming. The other four pollutants are referred to as *local pollutants*, because they cause damages near the emission source. They contribute, for example, to soil and water acidification and can cause cancer. Local pollutants are the reason why environmental damages differ depending on the locations in which you drive. The damages caused by all five pollutants together are referred to as *full damages*. Note that these damages are *marginal damages*, i.e. the damages of driving one additional mile. This allows us to compare gasoline and electric vehicle damages later on.
+
+Without further ado, let's now have a look into the actual data.
+
+**Task:**
+Use the `readRDS()` command to *load the data set* and store it in a variable called `GVeh`.
+The basic structure of the command is already given in the code chunk as a comment.
+
+info("readRDS() and saveRDS()") # Run this line (Strg-Enter) to show info
+
+```{r "1__4"}
+# ... <- readRDS("./Data/G_Veh_Dam.Rds")
+```
+
+
+We now want to have a first look at the data set. Use the command `sample_n()` from the `dplyr` package to show five randomly selected rows of data. This should give us a good feeling about its structure.
+
+**Task:** Show *five random rows* of the data frame `GVeh` using the `sample_n()` command.
+Again, the basic structure of the command is already given.
+
+info("sample_n()") # Run this line (Strg-Enter) to show info
+
+```{r "1__6"}
+# library(dplyr)
+# sample_n(... , size = ... )
+```
+
+As your result from this exercise is random, I printed an example here so we can discuss on a common basis.
+
+<!-- Native HTML to print example table without code chunk-->
+<p><style> table.data-frame-table {    border-collapse: collapse;  display: block; overflow-x: auto;}
+ td.data-frame-td {font-family: Verdana,Geneva,sans-serif; margin: 0px 3px 1px 3px; padding: 1px 3px 1px 3px; border-left: solid 1px black; border-right: solid 1px black; text-align: left;font-size: 80%;}
+ td.data-frame-td-bottom {font-family: Verdana,Geneva,sans-serif; margin: 0px 3px 1px 3px; padding: 1px 3px 1px 3px; border-left: solid 1px black; border-right: solid 1px black; text-align: left;font-size: 80%; border-bottom: solid 1px black;}
+ th.data-frame-th {font-weight: bold; margin: 3px; padding: 3px; border: solid 1px black; text-align: center;font-size: 80%;}
+ tbody&gt;tr:last-child&gt;td {
+      border-bottom: solid 1px black;
+    }
+</style></p>
+
+<table class="data-frame-table">
+<tbody><tr><th class="data-frame-th">fips</th>
+<th class="data-frame-th">state</th>
+<th class="data-frame-th">countyname</th>
+<th class="data-frame-th">urban</th>
+<th class="data-frame-th">vmt</th>
+<th class="data-frame-th">model</th>
+<th class="data-frame-th">mpg</th>
+<th class="data-frame-th">co2edam</th>
+<th class="data-frame-th">pm25dam</th>
+<th class="data-frame-th">so2dam</th>
+<th class="data-frame-th">noxdam</th>
+<th class="data-frame-th">vocdam</th>
+<th class="data-frame-th">G_Veh_Dam_full</th></tr><tr>
+
+<tr><td class="data-frame-td" nowrap="" bgcolor="#ffffff">36081</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">New York</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">Queens</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">TRUE</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">9.2998952</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">2014 Ford Focus </td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">26</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">1.4066154</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">0.9288887</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">0.21108396</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">0.00804345</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">1.7676676</td>
+<td class="data-frame-td" nowrap="" bgcolor="#ffffff">4.322299</td></tr>
+
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">48155</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">Texas</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">Foard</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">FALSE</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">0.01141868</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">2014 Ford Focus </td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">36</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">1.0158889</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">0.00063467</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">5.477e-05</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">0.00017684</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">0.00016245</td>
+<td class="data-frame-td" nowrap="" bgcolor="#dddddd">1.1187607</td></tr>
+
+<tr><td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">48155</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">Texas</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">Foard</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">FALSE</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">0.01141868</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">BMW 740i</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">29</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">1.2611034</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">0.00063467</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">6.799e-05</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">0.00041262</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">0.00021321</td>
+<td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">1.3939521</td>
+</tr></tbody></table><p></p>
+
+The data set shows *environmental damages of different car models in specific counties*. It contains separate values for CO<sub>2</sub>, SO<sub>2</sub>, NO<sub>x</sub>, PM<sub>2.5</sub> and VOCs, which are summed up in the last column `G_Veh_dam_full`. The second line in the example means that a 2014 Ford Focus driven for one mile in Foard County, Texas, causes environmental damages of 1.119 cents. You can see that the value for a BMW 740i in the same county is slightly higher. Because the amount of emitted pollutants is modeled by Holland et al. in such a way that it depends directly on the amount of combusted fuel, this difference comes solely from the difference in fuel consumption of the two gasoline cars. The column `mpg` shows how many miles a car can drive with one gallon of gasoline. For a given car, this value depends on whether the car is driven in an urban or a non-urban county. As you can see, in Foard County, the value for the BMW 740i is 29 miles per gallon (equivalent to 9.7 l/100km), as opposed to 36 miles per gallon (7.8 l/100km) for the Ford Focus in the same county. This shows that the BMW 740i is less fuel-efficient than the Ford Focus. The "dirtiest" car in the set is the BMW 750i with 17 miles per gallon (16.6 l/100km) in urban areas.
+
+The Ford Focus causes considerably more damages when driven in Queens, New York, compared to Foard County, Texas. One reason is the increased fuel consumption in urban areas, but we will talk about further reasons why the damage of a car differs between counties later in this exercise.
+
+To better understand how large the damages of the different cars are, we compute some summary statistics on the data set. To do so, we again use some useful functions from the `dplyr` package. This time however, we connect them using the *pipe operator*.
+The pipe operator is very handy because you don't have to save intermediate results or nest several functions into each other.  When we calculate means, we weight by *vehicle miles travelled* or *VMT*. This is a measure of the total miles all passenger cars drive in a county within a specific time frame. The VMT data can be found as part of the EPA Motor Vehicle Emission Simulator [(MOVES)](https://www.epa.gov/moves) model and is saved in the column `vmt` of the data frame. Do not worry about the absolute VMT values in this column as we are only using them as weights, so only the relations with each other are important.
+
+**Task:** Use the `group_by()` command to group the data set `GVeh` by the variable `model`. Then use the `summarize()` function to create a table which shows the `weighted.mean()` (with the column vmt as weights), `min()` and `max()` of the variable `G_Veh_Dam_full` for the individual groups. Connect the commands using the *pipe operator*.
+
+info("group_by() and summarize()") # Run this line (Strg-Enter) to show info
+
+info("pipe operator %>%") # Run this line (Strg-Enter) to show info
+
+```{r "1__10"}
+#GVeh %>%
+# ... %>%
+# summarize(mean_damage = weighted.mean(G_Veh_Dam_full, vmt), min_damage = ..., max_damage = ...)
+```
+
+The result resembles the middle column of Panel A in Table 2 in the article by Holland et al. We can see that the mean damages for the different cars range from 1.23 cents per mile for the Toyota Prius to 2.67 cents per mile for the BMW 750i, which is twice as much. However, most of the damage values are between 1.6 and 2 cents per mile. If we take a look at the min and max values, it seems like the difference across counties is much larger. For each car, the highest damage county has at least four times the damages of the corresponding lowest damage county.
+
+#! addon__quiz__Damage Comparison
+
+The following code chunk extracts the corresponding lines from the data set.
+
+**Task:** Just press *check*.
+
+```{r "1__11"}
+filter(GVeh, fips %in% c("31093", "6037"), model=="2014 Ford Focus ")
+```
+
+As you can see, the damages caused by SO<sub>2</sub> in Los Angeles are more than 100 times higher than those in Howard County, Nebraska. Maybe this has to do something with the population density in the two places.
+
+To assess this, let's have a closer look at the damages in different counties. Again, we take the 2014 Ford Focus as an example. To visualize the data, we use a so-called *choropleth map*, like Holland et al. in Figure 1. On this map, areas are shaded in proportion to the variable we want to display. In our case, areas are on the county level and we want to display the environmental damages of a 2014 Ford Focus. As county names are not unique, we use a numeric identifier called the *FIPS county code*. For each county, it can be found in the column `fips`. 
+We use the command `county_choropleth()` from the package `choroplethr` and two more functions from the `dplyr` package, namely `filter()` and `select()`.
+
+**Task:** Just press *check* to see the result.
+
+info("filter()") # Run this line (Strg-Enter) to show info
+
+info("select()") # Run this line (Strg-Enter) to show info
+
+info("rename()") # Run this line (Strg-Enter) to show info
+
+info("county_choropleth()") # Run this line (Strg-Enter) to show info
+
+```{r "1__15",fig.width=16, fig.height=7}
+library(choroplethr)
+GVeh %>%
+  filter(model=="2014 Ford Focus ") %>%
+  select(region=fips, value=G_Veh_Dam_full) %>%
+  county_choropleth(title="Environmental Damages of a 2014 Ford Focus by Counties", legend="Damage in cents/mile")
+```
+
+Some counties are missing in our data set and are therefore colored black. This is mostly because we concentrate on the contiguous United States (without Alaska or Hawaii) and also because our data set is not quite up-to-date. With a bit of geographical knowledge about the U.S., you may have noticed that the high damage counties seem to correspond to more densely populated areas.
+
+There is another variable called `urban`, which is true if the county belongs to a so called Metropolitan Statistical Area, or false otherwise (then these counties are more rural regions). Let's have a quick look at the ten counties with the largest and smallest environmental damages. We will use the `dplyr` functions `top_n()` and `arrange()` to gain an ordered list of the highest and lowest damage counties.
+
+**Task:** Just press *check*.
+
+info("top_n() and arrange()") # Run this line (Strg-Enter) to show info
+
+```{r "1__20"}
+GVeh %>%
+  filter(model=="2014 Ford Focus ") %>%
+  top_n(10, G_Veh_Dam_full) %>%
+  arrange(desc(G_Veh_Dam_full)) %>%
+  select(countyname, state, urban, vmt, G_Veh_Dam_full)
+GVeh %>%
+  filter(model=="2014 Ford Focus ") %>%
+  top_n(-10, G_Veh_Dam_full) %>%
+  arrange(G_Veh_Dam_full) %>%
+  select(countyname, state, urban, vmt, G_Veh_Dam_full)
+```
+
+We can see that all of the high damage counties are urban counties and all of the low damage counties are more rural regions. This has two reasons: Firstly, fuel consumption and therefore emissions of a gasoline car are higher when it is driven in urban areas. Secondly, most of the environmental damages come from the impact of local pollutants in densely populated areas. As gasoline cars release pollutants directly at the place where they are driven, these pollutants have a larger impact when the car is driven in places where more people live. You will learn more about this in Exercise 2.3, where I describe how Holland et al. mapped emissions of local pollutants into monetary damages.
+
+As we have a good overview of the data on gasoline vehicles by now, we will have a detailed look on electric vehicles in the next exercise.
+
+
+## Exercise 2 -- Examining Electric Vehicle Damages
+
+
+In the following exercises, we want to derive the environmental damages caused by electric cars and analyze them. This will allow us to compare gasoline and electric vehicle damages later on. Our approach to compute electric vehicle damages involves several steps:
+
+- First, we determine how much energy an electric car uses to drive one mile. As the energy consumption of electric vehicles is dependent on the outside air temperature, we perform a temperature adjustment to get more realistic values.
+
+- Second, we estimate the emissions caused by the consumption of an additional kilowatt hour of electricity in a specific area. To do so, we perform an econometric analysis using data on the load in the different areas and emission data from U.S. power plants.
+
+- Third, I explain how these emissions can be mapped into monetary damages using an integrated assessment model called the AP2 model.
+
+- Fourth, we assume an electric vehicle charging profile and combine the results from the previous exercises.
+
+- Last, we analyze the resulting electric vehicle damage values.
+
+Let's get started.
+
+
+## Exercise 2.1 -- Energy Consumption of Electric Vehicles
+
+
+In this exercise, we determine how much energy an electric car uses to drive one mile. As a basis, we use the EPA (U.S. Environmental Protection Agency) [fuel efficiency data base](https://www.epa.gov/fueleconomy) for 2014, which contains eleven pure electric cars. Let's load the data on these cars and have a quick look inside.
+
+**Task:** Load the data set `electriccars.Rds` into a variable `EVeh` and show it.
+
+```{r "2_1"}
+# ... <- readRDS("./Data/...")
+# ...
+```
+
+The unit of energy consumption is kilowatt hours per mile and ranges from 0.28 for the Chevy Spark EV to 0.54 for the BYD e6.
+
+We could already use these numbers, but there is one problem: In contrast to gasoline vehicles, the energy consumption of electric cars is *dependent on the outside temperature*. This is mostly due to a decrease in battery performance and a higher demand for heating and air conditioning under very hot and very cold conditions. As we want to compare the environmental damages of electric cars across counties and the temperatures in the U.S. vary considerably between counties, we should correct for the resulting difference in energy consumption. If you want to skip this step, you can proceed to the next exercise. You will still be able to understand the following parts without this exercise about the temperature adjustment.
+
+The energy consumption values (in kilowatt hours per mile) in the EPA data base are given for a temperature of 68 degrees Fahrenheit.
+
+#! addon__quiz__Fahrenheit vs Celsius
+
+Let's denote such an energy consumption value at 68 degrees Fahrenheit with $E_{68}$. It can be computed via
+$$E_{68} = \frac{C}{R_{68}},$$
+where C is the *battery capacity* of the car (in kilowatt hours) and $R_{68}$ is the *range* (in miles) at 68 degrees Fahrenheit. Our aim is to compute a temperature-adjusted energy consumption $\tilde{E}$ for each car in every county. As an input, we take results from a study by Meyer at al. (2012). At 19.4 degrees Fahrenheit (-7 degrees Celsius), they found a range loss of 20 percent with the heat turned off and a range loss of 45 percent  with the heat turned on. As we have no further information on heat usage, we average for a range loss of 33 percent.
+
+To use this information, Holland et al. model the range of the car depending on the outside temperature using a Gaussian function:
+$$R(T)=R_{68} \cdot e^{- \frac{(T-68)^2}{y}}.$$
+Here $y$ is a parameter, which we fit according to the range loss data from Meyer at al. (2012) in the following way.
+The relative range loss is
+$$\frac{R(19.4)-R_{68}}{R_{68}}=-0.33 \quad \Leftrightarrow \quad \frac{R(19.4)}{R_{68}}=0.67.$$
+If we put this into the function $R(T)$ for $T=19.4$, we get
+$$0.67=e^{- \frac{(19.4-68)^2}{y}} \quad \Leftrightarrow \quad y=-\frac{(19.4-68)^2}{log(0.67)}.$$
+
+We can now plot the function using the package `ggplot2` and see how it looks like. 
+
+**Task:** Just press *check*.
+
+```{r "2_1__2",optional=TRUE}
+y <- -1*(19.4-68)^2/log(1-0.33)
+
+library(ggplot2)
+ggplot(data.frame(x=c(-60, 200)), aes(x)) +
+  stat_function(fun=function(x) exp(-(x-68)^2/y)) + 
+  geom_vline(xintercept = 68, linetype="dotted", color = "blue") + 
+  scale_x_continuous(breaks=c(0, 68, 100, 200)) +
+  ggtitle("Relative Range of an Electric Car at Different Temperatures") +
+  xlab("Temperature in Degrees Fahrenheit") +
+  ylab("Relative Range")
+```
+
+As you can see, the value at x=68 is 1, which means we have full range at 68 degrees Fahrenheit. The graph is symmetric around 68, implying that colder and warmer temperatures have an equal effect.
+
+Now we can compute the adjusted energy consumption (in kilowatt hours per mile) for month $j$ with temperature $T_j$ using the formula
+$$\tilde{E_j} = \frac{C}{R(T_j)} = E_{68}\frac{R_{68}}{R(T_j)}.$$
+To come to our final value $\tilde{E}$, we have to make one more assumption: 
+
+*The number of miles driven per day is constant for every day of the year.*
+
+Using this, we can average over the monthly energy consumption values weighted by the number of days $d_j$ each month has:
+$$\tilde{E}=\frac{1}{\sum_{j=1}^{12}d_j}\sum_{j=1}^{12}d_j \tilde{E_j} = \frac{1}{\sum_{j=1}^{12}d_j}\sum_{j=1}^{12}d_j \cdot E_{68}\cdot{e^{\frac{(T_j-68)^2}{y}}}.$$
+
+This representation allows us to compute temperature-adjusted energy consumption values from actual data.
+We therefore load another data set called `TempMonth.Rds`, which contains the average daily maximum temperature in degrees Fahrenheit for each month in every county.
+
+**Task:** Use the `head()` command to show the first few rows of the data set `temp`. As you should be quite familiar with the procedure of loading data by now, I have already entered the correct command for that part.
+
+```{r "2_1__3"}
+# temp <- readRDS("./Data/TempMonth.Rds")
+# ...
+```
+
+The first row can be interpreted as follows: The value for `monthcode` is 1, which stands for January. January has 31 days, which can be seen in the column `days`. The average daily maximum temperature in Autauga County, Alabama, for January is 54 degrees Fahrenheit (12 degrees Celsius).
+
+Now we combine the two data frames `EVeh` and `temp` into one using the `merge()` command. This will allow us to correct the energy consumption of each of the eleven electric cars for every month in every county.
+
+info("merge()") # Run this line (Strg-Enter) to show info
+
+**Task:** Use the `merge()` command to combine the two data frames `temp` and `EVeh` into a new data frame `EVeh`, which contains every possible combination of rows from the two input data frames. Use the `head()` command to show the first few rows of the resulting data set.
+Note that the calculation might take a few seconds.
+
+```{r "2_1__4"}
+# EVeh <- ...
+# head(...)
+```
+
+In the next step, we use the formula we derived above to adjust the column `kwhrsmile` according to the respective monthly temperatures in the counties.
+
+**Task:** Assign the correct value to the parameter $y$. You can find the formula above. The command for the transformation of the energy consumption is already entered. It is basically the inner part of the sum in the formula above. The weighted sum over the months will be computed afterwards.
+
+```{r "2_1__5"}
+# y <- ...
+# EVeh$kwhrsmile <- EVeh$kwhrsmile*exp((EVeh$avgdailymaxairtemperaturef-68)^2/y)
+```
+
+The last step is now to take, for each car and every county, the average of the monthly energy consumption values, weighted with the number of days the respective month has. This is most easily done using the commands `group_by()` and `summarize()` from the `dplyr` package, which you already know from Exercise 1.
+
+**Task:** First, group the data frame `EVeh` by the variables `electriccar` and `fips`. Then, use the summarize command to create a new column `avg_kwhrsmile` by computing the average of the variable `kwhrsmile` weighted by `days`. Assign the resulting data frame to `Eveh2`. To do so, build a command chain connected using the pipe operator *%>%*. The structure of the command chain is already given. Show the first few rows of the resulting data frame using the `head()` command.
+
+```{r "2_1__6"}
+# EVeh2 <- EVeh %>%
+#         ...  %>%
+#         summarize(avg_kwhrsmile = weighted.mean(..., ...))
+# ...
+```
+
+As you can see, we now have *temperature-adjusted energy consumption values for each car in every county*, represented again by the FIPS county code. The values for a given car (like the BYD e6 in the first rows) only differ slightly between counties.
+
+As a next step, we have to estimate the emissions caused by the electricity usage of electric cars. We will do this in the next exercise.
+
+
+## Exercise 2.2 -- Econometric Analysis: Marginal Emissions from Electricity Use
+
+
+This exercise shows, how Holland et al. estimate the emissions caused by an increase in electricity usage. They perform an econometric analysis to estimate the so-called *marginal emission factors*. The analysis reflects which power plants respond to an increase in electricity usage due to electric vehicle charging in a specific location, depending on the load level. For each pollutant and every power plant, the marginal emission factors state the *increase in emissions for using an additional kilowatt hour of electricity* in a specific region at a certain time of the day (so the unit is tons per kilowatt hours).
+
+First, let me explain the spatial scale of the analysis. The electricity grid in the contiguous U.S. can be divided into three *interconnections*: the Eastern, the Western and the Texas interconnection. There is no substantial electricity flow between these interconnections, so Holland et al. model them separately. Within an interconnection, they assume that electricity consumed can be provided by any power plant within the same interconnection. The three interconnections can further be divided into nine *NERC regions* (following the North American Electric Reliability Corporation). The marginal emission factors are estimated on the scale of these NERC regions. This implies that *two electric vehicles charged in different counties of a given NERC region have the same marginal emission factors*.
+
+The data which Holland et al. use to perform the analysis consists of hourly emissions for the pollutants CO<sub>2</sub>, SO<sub>2</sub>, NO<sub>x</sub> and PM<sub>2.5</sub> for the years 2010 to 2012 at 1,486 power plants throughout the nine NERC regions, as well as hourly electricity loads in these regions. Holland et al. excluded the weekends to focus on working days. Note that, according to Holland et al., VOC emissions are negligible in this context because power plants only account for 0.25% of all VOC emissions.
+As you can imagine, this data set is huge. In this exercise, we therefore restrict our analysis to the Texas Interconnection, which has the advantage that it consists of a single NERC region. This region is either called *TRE* for *Texas Reliability Entity* or *ERCOT* for *Electric Reliability Council of Texas*. Even then, our data set contains almost 1.6 million observations. Note that Holland et al. did not provide any code or data related to the regression analysis. As the data source they gave was not available anymore, I collected data from several sources to be able to reproduce parts of their analysis. Hourly emissions for CO<sub>2</sub>, SO<sub>2</sub> and NO<sub>x</sub> were provided by the [EPA Air Markets Program](https://ampd.epa.gov/ampd/), emissions for PM<sub>2.5</sub> by the [EPA National Emissions Inventory](https://www.epa.gov/air-emissions-inventories/) and hourly load data for the ERCOT region on the [ERCOT website](http://www.ercot.com/gridinfo/load/load_hist/). To be able to combine the different data sets, I also used the [National Electric Energy Data System (NEEDS)](https://www.epa.gov/airmarkets/documentation-national-electric-energy-data-system-needs-v513) database. You can find the R code I used to prepare the regression data on [GitHub](https://github.com/felsti).
+
+<center>
+<img src="./Pictures/NERC_Regions_bearb.jpg" height="320px" width="430px" />
+</center>
+(Source: [NERC](https://www.nerc.com/AboutNERC/keyplayers/Pages/default.aspx))
+
+For the ERCOT region, the basic part of the regression in Holland et al. is the following:
+
+$$y_{i,t,p} = \sum_{h=0}^{23}\beta_{i,h,p}HOUR_hLOAD_t+\epsilon_{i,t,p}$$
+
+Here the dependent variable $y_{i,t,p}$ is power plant $i$'s hourly emission of pollutant $p$ (CO<sub>2</sub>, SO<sub>2</sub>, NO<sub>x</sub> or PM<sub>2.5</sub>) at time $t$. It is regressed on the electricity load interacting with the hour of the day. For every power plant and each pollutant, this results in 24 different coefficients, one for each hour of the day. This approach allows us to account for different charging profiles, which determine at which times of the day the electric car is charged. We will compare several charging profiles in Exercise 2.4.
+
+To account for seasonal changes that affect hourly electricity consumption, Holland et al. include fixed effects for each combination of hour and month. If you want more detailed information on the general fixed effects model, see for example Greene (2012), pp. 399 ff. The full regression equation then is the following:
+
+$$y_{i,t,p} = \sum_{h=1}^{24}\beta_{i,h,p}HOUR_hLOAD_t+\sum_{h=1}^{24}\sum_{m=1}^{36}\alpha_{i,h,m}HOUR_hMONTH_m+\epsilon_{i,t,p}$$
+
+As an example, we run the regression with actual data from the *Coleto Creek* Power Station near Fannin, Texas, and only look at *CO<sub>2</sub>* emissions. I have already filtered the data set accordingly so you don't have to load large amounts of unused data. The following chunk loads the data set `reg_data.Rds` into the variable `data` and shows the first few rows using the command `head()`.
+
+**Task:** Just press *check*.
+
+```{r "2_2"}
+data <- readRDS("./Data/reg_data.Rds")
+head(data)
+```
+
+The first row means that on 1st January 2010 between midnight and 1:00 a.m., Coleto Creek Power Station produced 650 Megawatt hours of electricity and emitted 675.4 tons of CO<sub>2</sub>. The electricity load in the ERCOT region between midnight and 1:00 a.m. was 32,094,064 kilowatt, which means that during that hour 32,094,064 kilowatt hours of electricity have been consumed.
+
+To further analyze the raw data, the following code chunk draws three plots. The first one shows the load in the ERCOT region during the third week of 2010. The second chart shows the electricity generation at Coleto Creek power station during the same time and the third one the corresponding CO<sub>2</sub> emissions at Coleto Creek. The package `gridExtra` is used to arrange the plots next to each other.
+
+**Task:** Just press *check*.
+
+```{r "2_2__2",fig.width=18, fig.height=5}
+library(gridExtra)
+
+plot1 <- ggplot(data=data[265:384,], aes(x=time, y=load)) + 
+  geom_line() + 
+  ylim(0,40000000) + 
+  xlab("Time") + 
+  ylab("Load in kW") + 
+  ggtitle("Load in ERCOT Region")
+
+plot2 <- ggplot(data=data[265:384,], aes(x=time, y=grossgen_MWh)) + 
+  geom_line() + 
+  ylim(0,700) + 
+  xlab("Time") +
+  ylab("Gross Generation in MW") + 
+  ggtitle("Electricity Generation at Coleto Creek")
+
+plot3 <- ggplot(data=data[265:384,], aes(x=time, y=CO2_tons)) + 
+  geom_line() + 
+  ylim(0,700) + 
+  xlab("Time") + 
+  ylab("CO2 Emission Rate in tons/hour") + 
+  ggtitle("CO2 Emissions at Coleto Creek")
+
+grid.arrange(plot1, plot2, plot3, ncol=3)
+```
+
+In the first plot, you can see a typical load profile with periodic declines during night time. The electricity generation at Coleto Creek power station, which can be seen in the second plot, is mostly stable during the whole week. There are only three minor drops of about 30 MW, which seem to correspond to drops in the load chart. The CO<sub>2</sub> emissions follow the electricity generation with some disturbance.
+
+#! addon__quiz__Coleto Creek
+
+info("Base Load vs. Peaking") # Run this line (Strg-Enter) to show info
+
+The plots indeed suggest that Coleto Creek is a *base load power plant*, as it runs during low and high load periods with almost no variation in electricity generation.
+
+Let's now perform the actual regression. We use the command `felm()` from the package `lfe` to incorporate the fixed effects into the model. If you are not familiar with its usage, have a look at the info box.
+
+info("felm()") # Run this line (Strg-Enter) to show info
+
+**Task:** Perform the regression described in the equation above using the command `felm()` from the package `lfe`. Save the result in a variable called `model`.
+
+```{r "2_2__4",results='asis'}
+# library(lfe)
+# ... <- felm(CO2_tons ~ OP_HOUR : load | ... : ... , data=data)
+```
+
+
+**Task:** Use the command `stargazer()` from the identically named package to show a summary of the `model`. You can use the `stargazer()` command just like the basic `summary()` command. I have added a few additional parameters. Show 9 decimal places using the parameter `digits`. 
+
+```{r "2_2__5",results='asis'}
+# library(stargazer)
+# ...(..., digits=..., type="html", report="vc*")
+```
+
+Now don't be afraid of the rather large output. For the most part, it is the 24 coefficients for the different hours of the day. If we take for example the coefficient labeled with "OP_HOUR0:load", the table gives an estimate of 0.000004826. That means 0.000004826 tons or 4.826 grams of CO<sub>2</sub> would be emitted additionally at Coleto Creek Power Station if the electricity demand within the ERCOT region increased by 1 kWh between midnight and 1:00 a.m. The number seems very small, but you have to consider that
+
+1. there are many other power plants within the ERCOT region which will also have increased emissions.
+
+2. these are only CO<sub>2</sub> emissions, neglecting the local pollutants SO<sub>2</sub>, NO<sub>x</sub> and PM<sub>2.5</sub>.
+
+3. one kWh is not a very large amount of electricity. For comparison, the Tesla Model S is available with a 85 kWh battery.
+
+Most of the coefficients are significant on the 1% or the 5% level. From 7:00 a.m. to 9:00 p.m., significance levels are tendentially lower, so our coefficients are less significant during daytime. To find out why this is the case, we can further analyze the coefficients.
+
+Let's plot a simple bar chart to visualize the variation of the coefficients over the time of the day. From now on, we also refer to the coefficients as *emission factors*.
+
+**Task:** Just press *check*.
+
+```{r "2_2__6",fig.width=10, fig.height=5}
+dat <- data.frame(hour = 1:24, CO2_tons = model$beta)
+dat$CO2_grams <- dat$CO2_tons*1000000
+ggplot(data = dat, aes(x = factor(hour), y = CO2_grams)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("Marginal Emission Factors for CO2 at Coleto Creek Power Station") +
+  xlab("Hour of the Day") +
+  ylab("CO2 Emission Factors (in g/kWh)")
+```
+
+What is noticeable is that the emission factors for Coleto Creek Power Station are much higher during the early hours of the day (from midnight to 6:00 a.m.). To find out why this is the case, we can have a look at the average load in the ERCOT region for each hour of the day.
+
+**Task:** Use a `dplyr` chain to calculate the mean load for each hour of the day from the data frame `data`. Save the result in a data frame `loadkW`. The basic structure of the solution is already given.
+
+```{r "2_2__7"}
+# loadkW <- ... %>%
+#   group_by(...) %>%
+#   summarize(avg_load = ...(load))
+```
+
+**Task:** Use the command `mutate` from the package `dplyr` to transform the average load data from kilowatt to Gigawatt and show it.
+
+info("mutate() and transmute()") # Run this line (Strg-Enter) to show info
+
+```{r "2_2__9"}
+# loadGW <- ...(load, avg_load = avg_load/...)
+# ...
+```
+
+The unit of the load data now is Gigawatt. As you can see, the average load reaches from 29 Gigawatts in the early morning (3:00 a.m. to 5:00 a.m.) to 44 Gigawatts in the afternoon (4:00 p.m. to 6:00 p.m.).
+Now let's use this information and plot the emission factors and the average load together in a single plot. Maybe we can find a connection between the two. In the following code chunk, a data frame with the necessary information is created and then a helper function `dp` (for [dual plot](https://gist.githubusercontent.com/ellisp/4002241def4e2b360189e58c3f461b4a/raw/e959562be9e7a4d919a9c454d8b1b70cde904ab0/dualplot.R)) is used to display emission factors and average load over the same x-axis but with different y-scales.
+
+**Task:** Just press *check*.
+
+```{r "2_2__10",fig.width=12, fig.height=5}
+dp <- dget("dp.R")
+data <- data.frame(hour = 1:24, 
+                   CO2_tons = model$beta, 
+                   avg_load=loadGW$avg_load)
+data$CO2_grams <- data$CO2_tons*1000000
+
+dp(x1 = data$hour, 
+   y1 = data$CO2_grams,
+   x2 = data$hour, 
+   y2 = data$avg_load, 
+   xlab = "Hour of the Day",
+   ylab1 = "Emission Factors (in g/kWh)", 
+   ylab2 = "Average Load (in GW)",
+   legx = "topright", 
+   main = "Emission Factors vs. Average Load")
+```
+
+It seems like the emission factors of Coleto Creek Power Station are especially high when the load is below a certain threshold. To explain why this is the case, remember that we presumed that Coleto Creek is a base load power plant. At this point, I can tell you that it is indeed a coal-fired power plant. Coal-fired power plants are typical base load power plants because they take a long time to start up and shut down. When the demand for electricity is high, base load power plants usually run at full load. If then the demand for electricity increases, it is most likely a peaking power plant like a gas-fired power station that will increase its production. Therefore, a gas-fired power plant has higher emission factors during high demand periods. The coal-fired plant reacts, if at all, during periods with very low demand when only base load plants are running. This is the reason why the emission factors of the coal-fired Coleto Creek Power Station are highest during low load periods. It also explains why the emission factors are less significant in the daytime.
+
+Now that we understood the results for Coleto Creek Power Station, I will shortly explain how Holland et al. proceeded to obtain all the necessary data. The regression we did for the CO<sub>2</sub> emission factors at Coleto Creek Power Station has to be repeated for all the other power plants in the ERCOT region and then again for the remaining three pollutants, yielding the results for the ERCOT region. For the remaining eight regions, there is an analogous procedure. These steps require large computational resources, much of the data is unavailable and it does not contribute much to our understanding, which is the reason why we don't do it here.
+
+At this point, we have values for energy consumption of electric cars from Exercise 2.1 and in this exercise, we estimated the emissions caused by additional energy consumption in form of the marginal emission factors. The next step is to map these emissions into monetary damages. For CO<sub>2</sub>, damages are valuated via the EPA *Social Cost of Carbon* estimate. For the local pollutants, we use the so-called AP2 model. You will learn more about this model in the next exercise.
+
+
+## Exercise 2.3 -- Mapping Emissions into Damages: The AP2 Model
+
+
+In this exercise, we have a look at the so-called *AP2 model*, which was developed by Muller et al. (2011). It is an *integrated assessment model*, which means it integrates several scientific domains and aims to provide knowledge for policy making. Its purpose is to map emissions of local pollutants into monetary damages. It has been used by Holland et al. in a way that allows us to transform the marginal emissions we estimated in Exercise 2.2 into marginal damages. However, due to its interdisciplinary and complex nature, it would be far beyond the scope of this problem set to actually implement and use the model. Therefore, I will only explain how it works so you can understand the approach. We will then use the results provided by Holland et al. to go on with our analysis on electric vehicle damages in the next exercise.
+
+**Stage 1: From Emissions to Ambient Concentrations**
+
+The first part of the AP2 model is an *air quality model*. As an input, it uses emissions of SO<sub>2</sub>, NO<sub>x</sub>, PM<sub>2.5</sub> and VOCs from 10,000 sources of air pollution in the contiguous U.S. reported to the EPA (Environmental Protection Agency). These sources are modeled on three different levels:
+
+1. *Large stationary point sources*: There are 656 of those and they are all modeled individually. That means their geographic location and the height at which their emissions occur is distinct for each of them. These are mostly power plants.
+
+2. *Smaller stationary point sources*: Emissions of smaller stationary sources are not spatially individually modeled, but are attributed to the population-weighted centroid of the county they occur in. According to the [U.S. Census Bureau](https://www.census.gov/geo/reference/centersofpop.html), these centers of population are the points at which an imaginary, weightless and flat surface representation of the counties would balance if weights of equal size were placed on it so that each weight represented the location of one person. However, just like with the large stationary point sources, it is differentiated between the heights at which their emissions occur because this is a very important factor for the dispersion of pollutants. Examples for such smaller stationary sources are medium-sized industries or cogeneration units in large buildings.
+
+3. *Ground-level sources*: There is no individual data on these emissions. They are simply attributed to the county of their origin and the AP2 model handles them in a way that reflects their distributed nature and the low release point of the pollutants. Among these sources are vehicles, households and small industries without an individually monitored smokestack.
+
+Using this, the air quality model maps emissions into ambient concentrations in the 3,110 counties of the contiguous U.S. In doing so, it captures the complex chemical and physical relationships between the pollutants. According to Muller (2011), the results match actual measurements from the receptor locations in the counties rather well.
+
+**Stage 2: From Ambient Concentrations to Exposures**
+
+To determine the physical consequences of pollutants, it is important to consider where they take effect. The main impacts in the model are *human health effects and crop and timber yields*. See Muller and Mendelsohn (2007) for more details. To assess these effects, one has to link the spatial distribution of their underlying factors to ambient concentrations of pollutants. The AP2 model therefore uses county-level population data from the U.S. Census and crop and timber yields reported by the U.S. Department of Agriculture to calculate exposures on plants and humans. 
+
+**Stage 3: From Exposures to Monetary Damages**
+
+The third stage of the model is an *economic valuation model*. It uses concentration-response functions to evaluate the physical effects of exposure to the pollutants. Then, it assigns monetary values to these effects. The outputs are monetary damages in U.S. dollars. The biggest share of the damages is due to an increase in adult mortality risks. As an example, you can see a concentration-response function for PM<sub>2.5</sub>, which maps ambient concentrations of PM<sub>2.5</sub> to the logarithm of relative mortality rates (RR). A relative mortality rate of 1 (resulting in a log RR of 0) means that the mortality risk is equal to that of a certain baseline. As you can see, both the functions for all-cause mortality and for lung cancer mortality are increasing with air concentrations of PM<sub>2.5</sub>. Pope et al. (2002) estimate an increase of 4% in all-cause relative mortality risk for each $10\space\mu g/m^3$ elevation in PM<sub>2.5</sub> air pollution.
+
+<center>
+<img src="./Pictures/PM25.jpg" height="503px" width="352px" />
+</center>
+(Source: Pope et al. (2002))
+
+To assign monetary damages to these risks, the AP2 model uses a value of 810 dollars per 0.0001 change in mortality risk, following the [EPA](https://www.epa.gov/environmental-economics/mortality-risk-valuation#whatvalue). This results in a so-called *value of a statistical life* (VSL) of 8,100,000 dollars.
+
+The effects on crop and timber yields are much simpler to value, as you can just use market prices.
+
+Summing up all of these damages over each local pollutant and in every receptor county yields the final *full emission damages*.
+
+**Stage 4: From Damages to Marginal Damages**
+
+In fact, we are not really interested in the actual emission damages that occur in the U.S. What we want are *marginal damages*, i.e. how would the full emission damages change if one ton of a certain pollutant was additionally emitted at a specific power plant. Therefore it is necessary to use the AP2 model in the following way:
+
+1. First, the AP2 model is run once just like described above, to obtain baseline emission damages.
+
+2. Then, the model is re-run, but a ton of one of the pollutants is added to the reported emissions at a particular power plant.
+
+3. The baseline emission damages (step 1) are subtracted from the emission damages of the plus-one-ton case (step 2). This yields the full marginal emission damages for the specific pollutant which was added at that power plant.
+
+4. Steps 2 and 3 are repeated for all combinations of pollutants and power plants.
+
+This yields the final results.
+
+If you want to test your knowledge from this exercise, feel free te solve the quizzes below.
+In the next exercise, we will combine the findings from Exercises 2.1, 2.2 and 2.3 to finally calculate electric vehicle damages.
+
+#! addon__quiz__AP2 model 1
+
+#! addon__quiz__AP2 model 2
+
+#! addon__quiz__AP2 model 3
+
+
+
+## Exercise 2.4 -- Electric Vehicle Damages
+
+
+In this exercise, we combine our previous results to *calculate electric vehicle damages*. In a first step, we use the marginal emissions of CO<sub>2</sub>, which we calculated in Exercise 2.2, to calculate marginal damages using the *Social Cost of Carbon (SCC)*. We add these marginal damages to the marginal damages of the local pollutants, which we received from the AP2 model in Exercise 2.3. Remember that the marginal damages at this point are given separately for each hour of the day. This allows us to combine the marginal damages with different charging profiles. Last, we use the values for electric vehicle energy consumption from Exercise 2.1 to receive our final values.
+
+To better understand the connection between the last exercises, let's have a look at the units of the respective results:
+
+1. Exercise 2.1 yielded energy consumption values in *kilowatt hours per mile*.
+
+2. In Exercise 2.2, we estimated marginal emission factors with the unit *tons per kilowatt hour*.
+
+3. Exercise 2.3 mapped emissions into damages. The resulting unit was *dollars per ton*.
+
+4. Combining theses units, Exercise 2.4 will result in $\frac{kWh}{mile}\cdot\frac{ton}{kWh}\cdot\frac{dollar}{ton} = \frac{dollar}{mile}.$
+
+Due to computational restrictions and limited data availability, we computed the marginal emissions in Exercise 2.2 by the example of a single power plant in the Texas Interconnection. Also remember that we explained the AP2 model in Exercise 2.3, but could not actually implement it because of its complexity. Therefore, we use intermediate results provided by Holland et al. to start with this exercise. 
+For CO<sub>2</sub>, these results are the marginal emission factors from Exercise 2.2, which we transform into marginal damages (in dollars per ton) using the *Social Cost of Carbon (SCC)*.
+For the local pollutants, we start with the combined output of the linear model in Exercise 2.2 and the AP2 model in Exercise 2.3.
+
+First, we have a look at the marginal emissions of CO<sub>2</sub>. The next chunk loads the data set `ME_e_co2_kwh.Rds` into a variable called `ME_e_co2_kwh` and shows it.
+
+**Task:** Just press *check*.
+
+```{r "2_4"}
+ME_e_co2_kwh <- readRDS("./Data/ME_e_co2_kwh.Rds")
+ME_e_co2_kwh
+```
+
+For each hour of the day, we have marginal emission factors for CO<sub>2</sub> (in tons per kilowatt hour) in the different NERC regions. So, for example, the first entry in the `ercot` column means that between midnight and 1:00 a.m. 0.00058 tons of CO<sub>2</sub> are additionally emitted on average if the demand for electricity increases by 1 kilowatt hour in the ERCOT region. The values in the first column are basically the same as our final output in Exercise 2.2, except that we calculated the emission factors for only one power plant in the ERCOT region, and the values here are summed up over all power plants within the ERCOT region. The other columns of the data set simply contain values for the other NERC regions.
+
+Let's now transform these marginal emissions into marginal damages. To do so, we use the *Social Cost of Carbon (SCC)* values from the [EPA website](https://www.epa.gov/sites/production/files/2016-12/documents/social_cost_of_carbon_fact_sheet.pdf). They give a SCC estimate of 36 dollars for 2015 for a 3 percent discount rate. However, the value is given in 2007 dollars. As our year of analysis is 2014, we adjust this value using the [US consumer price index](https://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/). For 2014, the index noted 236.736 and the 2007 value was 207.3. This results in a factor of $\frac{236.736}{207.3}\approx1.14$. So the SCC value in 2014 dollars is $36*1.14=41$. Note that we will compare the results for different SCC values in Exercise 6.
+The transformation itself is now very simple.
+
+**Task:** Create a variable `SCC` with the value 41 and multiply the data frame `ME_e_co2_kwh` with the variable `SCC`. Safe the result in a variable called `MD_e_co2_kwh`. Note that the column `hour` doesn't make sense anymore after the operation. As the information is redundant anyway (the first row corresponds to the first hour, and so on), we can simply remove it.
+
+```{r "2_4__2"}
+# SCC <- ...
+# ME_e_co2_kwh <- select(ME_e_co2_kwh, ercot, wecc, frcc, miso, npcc, rfc, serc, spp, ca)
+# MD_e_co2_kwh <- ... * ...
+```
+
+Now we have marginal damage values for CO<sub>2</sub>.
+For the local pollutants, Holland et al. already give marginal damages in dollars per kilowatt hour as a combined output of the regression analysis and the AP2 model. The next chunk loads the data set `MD_e_local_kwh.Rds`, stores it in a variable called `MD_e_local_kwh` and shows it.
+
+**Task:** Just press *check*.
+
+```{r "2_4__3"}
+MD_e_local_kwh <- readRDS("./Data/MD_e_local_kwh.Rds")
+MD_e_local_kwh
+```
+
+As you can see, it looks exactly like the data frame `MD_e_co2_kwh`. Only this time, we already have marginal damages and the values for the three pollutants SO<sub>2</sub>, NO<sub>x</sub> and PM<sub>2.5</sub> have been summed up. To obtain the final data set, we can simply add the two data frames together. Note that adding data frames is not the best idea in most cases since the columns can contain very different types of data. In our case, however, all entries are numeric and the structure of the two data frames is the same, so we can basically treat them like matrices. We just have to remove the column `hour` from the data frame `MD_e_local_kwh` first.
+
+**Task:** Remove the column `hour` from the data frame `MD_e_local_kwh`, compute the sum of the two data frames `MD_e_local_kwh` and `MD_e_co2_kwh` and safe the result in a data frame called `MD_e_kwh_hrs`.
+
+```{r "2_4__4"}
+# MD_e_local_kwh <- select(MD_e_local_kwh, ercot, wecc, frcc, miso, npcc, rfc, serc, spp, ca)
+#... <- MD_e_local_kwh + ...
+```
+
+Now we have successfully combined the results of Exercises 2.2 and 2.3. However, the marginal damages are still given separately for each hour of the day. What we rather want is a single value for each region. To obtain this, we have to assume charging profiles for the electric cars. A charging profile is simply a vector containing weights for each hour of the day. The weights tell the percentage of electricity that is charged during that specific hour. Let's have a look at some different charging profiles.
+
+**Task:** Just press *check*.
+
+```{r "2_4__5"}
+ChargeProf <- readRDS("./Data/ChargeProf.Rds")
+select(ChargeProf, hour, flat, prof14, EPRIProf)
+```
+
+The first profile called `flat` is very straight forward. Every weight is the same, implying that the same amount of electricity is charged during every hour of the day. The second profile, `prof14`, has weights of 0 except for the first four hours of the day. In total, there are six profiles of this type. They can later be used to tell whether it is beneficial to charge electric cars during a specific time frame in the day. The last profile is the so-called EPRI charging profile `EPRIProf` reported by the [Electric Power Research Institute](https://www.energy.gov/sites/prod/files/oeprod/DocumentsandMedia/EPRI-NRDC_PHEV_GHG_report.pdf). Let's plot the EPRI charging profile in a bar chart. 
+
+**Task:** Just press *check*.
+
+```{r "2_4__6",fig.width=10, fig.height=5}
+ggplot (data = ChargeProf, aes(x = factor(1:24), y = EPRIProf)) +
+  geom_bar(stat = "identity") +
+  ggtitle("The EPRI Charging Profile") +
+  xlab("Hour of the Day") +
+  ylab("Charging Fraction") +
+  scale_y_continuous(labels = scales::percent)
+```
+
+The profile assumes that most electricity is charged during the night and in the early morning. The charging load is minimal during commute time and there is a medium load during the day due to public or workplace charging.
+
+We now apply the charging profiles to our data set. That means, for each NERC region, we calculate the mean over the hours of the day, weighted with the corresponding charging profiles. To assess the importance of the assumed charging profile, we follow Holland et al. and use a total of eight different charging profiles to compute the weighted mean. 
+As our data frames only contain numeric values, they can be seen as matrices. This makes it far easier for us to calculate the eight weighted means for all of the regions: It is simply a matrix multiplication. To understand how this works, let me give you a simple example.
+
+Consider the following two data frames:
+
+<table class="data-frame-table">
+<tbody><tr><th class="data-frame-th">A</th><th class="data-frame-th">B</th><th class="data-frame-th">hour</th></tr><tr><td class="data-frame-td" nowrap="" bgcolor="#dddddd">2</td><td class="data-frame-td" nowrap="" bgcolor="#dddddd">6</td><td class="data-frame-td" nowrap="" bgcolor="#dddddd">1</td></tr>
+<tr><td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">4</td><td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">3</td><td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">2</td></tr>
+</tbody></table>
+<table class="data-frame-table">
+<tbody><tr><th class="data-frame-th">X</th><th class="data-frame-th">Y</th><th class="data-frame-th">hour</th></tr><tr><td class="data-frame-td" nowrap="" bgcolor="#dddddd">0.5</td><td class="data-frame-td" nowrap="" bgcolor="#dddddd">1</td><td class="data-frame-td" nowrap="" bgcolor="#dddddd">1</td></tr>
+<tr><td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">0.5</td><td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">0</td><td class="data-frame-td-bottom" nowrap="" bgcolor="#ffffff">2</td></tr>
+</tbody></table><p></p>
+
+For simplicity, we only have two hours in this setting. Think of `A` and `B` as different regions and `X` and `Y` as two charging profiles. We are interested in the following weighted means:
+
+$$\begin{split} 
+& A|X: \quad 0.5 \cdot 2 + 0.5 \cdot 4 \quad & = 3 \\\
+& A|Y: \quad 1 \cdot 2 + 0 \cdot 4 & = 2 \\\
+& B|X: \quad 0.5 \cdot 6 + 0.5 \cdot 3 & = 4.5 \\\
+& B|Y: \quad 1 \cdot 6 + 0 \cdot 3 & = 6 \\\
+\end{split}$$
+
+To calculate these values using matrix multiplication, leave the column `hour` away and consider the two data frames as matrices
+
+$$\begin{pmatrix}
+2 & 6 \\\
+4 & 3 
+\end{pmatrix}
+\text{ and } 
+\begin{pmatrix}
+0.5 & 1 \\\
+0.5 & 0 
+\end{pmatrix}.$$
+
+Then the weighted means from above can simply be calculated by multiplying the transposition of the first matrix with the second:
+
+$$\begin{pmatrix}
+2 & 6 \\\
+4 & 3 \end{pmatrix}^T \cdot
+\begin{pmatrix}
+0.5 & 1 \\\
+0.5 & 0 \end{pmatrix} =
+\begin{pmatrix}
+2 & 4 \\\
+6 & 3 \end{pmatrix} \cdot
+\begin{pmatrix}
+0.5 & 1 \\\
+0.5 & 0 \end{pmatrix} =
+\begin{pmatrix}
+3 & 2 \\\
+4.5 & 6 \end{pmatrix}$$
+
+Now we follow the same procedure, but with our actual data. The data frame `ChargeProf` still contains a column `hour`, which we need to remove to perform the matrix multiplication. Therefore, we select all the columns except the column `hour`.
+
+**Task:** Just press *check*.
+
+```{r "2_4__7"}
+ChargeProf <- select(ChargeProf, EPRIProf, flat, prof14, prof58, prof912, prof1316, prof1720, prof2124)
+```
+
+**Task:** Use the command `as.matrix()` to convert the data frames `MD_e_kwh_hrs` and `ChargeProf` into matrices and save the result in data frames `MD_e_kwh_hrs_m` and `ChargeProf_m`, respectively.
+
+```{r "2_4__8"}
+# MD_e_kwh_hrs_m <- as.matrix(...)
+# ...
+```
+
+Now it follows the main part, the matrix multiplication. To get dimensions right, `MD_e_kwh_hrs_m` has to be transposed by simply using `t()`. The matrix multiplication in R is performed with the `%*%` operator.
+
+**Task:** Multiply the transposition of `MD_e_kwh_hrs_m` with `ChargeProf_m` and save the result as `MD_e_kwh`.
+
+```{r "2_4__9"}
+# ... <- t(...) %*% ...
+```
+
+As a last step, we convert the resulting matrix `MD_e_kwh` back to a data frame using the command `as.data.frame()` and add a column with the names of the NERC regions, which are currently saved as the `rownames()` of `MD_e_kwh`.
+
+**Task:** Convert the matrix `MD_e_kwh` into a data frame, add a column `NERC` which contains the row names of `MD_e_kwh` and show the result.
+
+```{r "2_4__10"}
+# MD_e_kwh <- as.data.frame(...)
+# MD_e_kwh$... <- rownames(...)
+# ...
+```
+
+What this table tells us are the *marginal damages (in dollars per kilowatt hour) for eight different charging profiles in each of the nine NERC regions*. This, however, is still not the final result, as we are interested in *dollars per mile*. To perform this last step, we combine the table with the results from Exercise 2.1. We will then later see a similar table, but in dollars per mile, and then discuss its implications.
+
+To refresh our memory as to what the data set from Exercise 2.1 looks like, we load it in and have a quick look at it. The following chunk loads the data set `EVeh2.Rds` into a variable `EVeh2` and shows the first few rows using the command `head()`.
+
+**Task:** Just press *check*.
+
+```{r "2_4__11"}
+EVeh2 <- readRDS("./Data/EVeh2.Rds")
+head(EVeh2)
+```
+
+As you can see, we have electricity consumption values in kilowatt hours per mile for each car in every county. Until now, we have performed the analysis for electric vehicles on the level of NERC regions rather than counties. Therefore, the first step is to augment the data set `MD_e_kwh` with the FIPS county codes. For this, we use the data set `fips2NERC_adj.Rds`. Then, we can merge the data frames `MD_e_kwh` and `EVeh2` using the FIPS code as a key.
+
+**Task:** Load the data set `fips2NERC_adj.Rds` and store it in a variable called `fips2NERC`. Then, first merge the data sets `MD_e_kwh` and `fips2NERC` using the column `NERC` as a key. After that, merge the data frames `MD_e_kwh` and `EVeh2` using the column `fips` as a key. In both cases, set the parameter `all.y = TRUE`. Show the data set using `head()`.
+
+```{r "2_4__12"}
+#fips2NERC <- readRDS("./Data/fips2NERC_adj.Rds")
+#MD_e_kwh2 <- merge(MD_e_kwh, ... , "..." , all.y = TRUE)
+#MD_e_kwh3 <- ... (MD_e_kwh2, ... , "..." , ... )
+# ... (MD_e_kwh3)
+```
+
+As you can see, the table resembles the data we had in Exercise 1: We have values for the environmental damage for each car and every county. The difference is, the unit is still dollars per kilowatt hour and we have damage values for eight different charging profiles. The last column `avg_kwhrsmile` tells us the energy consumption of the electric cars in every county, which we calculated in Exercise 2.1. We are now only one step away from our results - we just have to multiply the damage values in the columns labelled with the different charging profiles with the energy consumption in the last column.
+
+**Task:** Create a copy of the data frame `MD_e_kwh3` called `MD_e`. Multiply the columns 3 to 10 of the data frame `MD_e_kwh3` with the column `avg_kwhrsmile` and a factor of 100 to obtain cents per mile and save the result in `MD_e`. Use the `head` command to show the first few rows of `MD_e`.
+
+```{r "2_4__13"}
+# MD_e <- MD_e_kwh3
+# MD_e[3:10] <- MD_e_kwh3[...]*MD_e_kwh3$... * ...
+# ...
+```
+
+
+Finally!
+
+Let's jump straight into the next exercise to analyze our results.
+
+
+## Exercise 2.5 -- Analyzing Electric Vehicle Damages
+
+
+In this exercise, we *explore the data set on electric vehicle damages*, which we calculated in the exercise before. The first chunk loads the file `MD_e.Rds` into a data frame `MD_e` and shows the first rows using the `head()` command.
+
+**Task:** Just press *check*.
+
+```{r "2_5"}
+MD_e <- readRDS(file="./Data/MD_e.Rds")
+head(MD_e)
+```
+
+The data frame contains marginal damages in cents per mile for each electric car in every county (represented by the FIPS county code), differentiated by eight charging profiles. So in the first row, we can see that a 2014 Honda Fit EV which is charged according to the EPRI charging profile in Autauga County (FIPS 1001) causes environmental damages of 2.44 cents per mile.
+
+As a first step, we recreate Table 1 in the article by Holland et al. in order to compare the damages for the different charging profiles. Like them, we aggregate to the level of NERC regions for a better overview. To leave out differences based on the specific cars, we concentrate on the Ford Focus Electric. When we calculate means, we weight by *vehicle miles travelled* or *VMT*, like we already did in Exercise 1. We therefore add the VMT values to the data frame first.
+
+**Task:** Load the file `counties.Rds` into a data frame `counties`. Then merge the data frames `MD_e` and `counties` with the column `fips` as a key. Use the `merge()` command and set the parameter `all.x=TRUE`. Save the result under `MD_e2` and have a look at the resulting data frame using the `head()` command.
+
+```{r "2_5__2"}
+# counties <- readRDS(file="./Data/counties.Rds")
+# MD_e <- merge(MD_e, ... , "..." , all.x= ... )
+# ...
+```
+
+The VMT values can now be found in the column `vmt`. Additionally, the data set now contains information like the county names, states, and whether it is an urban county or not.
+Now we construct the table, once again using a `dplyr` chain.
+
+**Task:** Build a `dplyr` chain using the pipe operator to accomplish the following task: 
+Filter the data set `MD_e2` for the `electriccar` "2014 Ford Focus Electric" and group it by `NERC` regions. Then, for each of the columns labelled with the charging profiles, calculate the weighted mean using the command `weighted.mean()` with `vmt` as weights . Show the result. Use the commands `filter()`, `group_by()` and `summarize_at()` from the package `dplyr`.
+
+```{r "2_5__3"}
+# MD_e2 %>%
+#   filter(electriccar == "...") %>%
+#   ... %>%
+#   summarize_at(vars(EPRIProf, flat, prof14, prof58, prof912, prof1316, prof1720, prof2124), funs(weighted.mean(., vmt))))
+```
+
+If we have a look at the ERCOT region (Texas), the damages range from 1.0 cent when charging between 5:00 p.m. and 8:00 p.m. to 1.5 cents between 1:00 a.m. and 4:00 a.m. For other regions, the differences are a bit higher. For the MISO region (Midwest), the damages could be reduced by almost 2 cents compared to the EPRI profile by charging between 5:00 p.m. and 8:00 p.m.
+Between NERC regions, the differences are clearer. They range from 0.7 cents in California (CA) to 4.3 cents in the MISO region for the EPRI profile. These large differences are mainly due to the power plant fuel mixes in the specific regions. All in all, the variation across NERC regions is much higher than the variation across charging profiles. As the EPRI profile is the most reasonable one, we use it as the baseline charging profile from now on.
+
+As with the gasoline vehicles, we want to visualize the electric vehicle damages on a map of the U.S. on the county level. This corresponds to the second part of Figure 1 in Holland et al. Once again, we use a `dplyr` chain to prepare the data for the `choroplethr` package. We use the data for the Ford Focus Electric together with the EPRI charging profile. Note that the calculation might take a few seconds.
+
+**Task:** Just press *check*.
+
+```{r "2_5__4",fig.width=16, fig.height=7}
+MD_e2 %>%
+  filter(electriccar == "2014 Ford Focus Electric") %>%
+  select(region=fips, value=EPRIProf) %>%
+  county_choropleth(title="Environmental Damages of a 2014 Ford Focus Electric by Counties", legend="Damage in cents/mile")
+```
+
+On the map you can see large areas of mostly uniform coloring. These areas correspond to the NERC regions. Within the NERC regions, the difference in damages comes solely from the temperature adjustments to the energy consumption values of the cars we made in Exercise 2.1.
+The very light area in the West are the regions CA and WECC, which is California and the Western Region. If you remember the picture for gasoline vehicles, we saw that the densely populated areas and cities in California were some of the highest damage regions for gasoline vehicles. So we can already tell that this might be a good spot for driving electric cars. In case you are wondering about the dappled area between the Midwest and the West, the reason for this is that the NERC regions do not follow state or county borders. Holland et al. therefore attribute borderline counties to the NERC region which serves the largest number of addresses in the county. This leads to some of the counties in this area being assigned to the Midwest, which has very large electric vehicle damages, and others being assigned to the Western Interconnection, which has very low electric vehicle damages.
+
+As with the gasoline vehicles, let's conclude this exercise by having a look at the highest and lowest damage counties. The code is basically the same as in Exercise 1.
+
+**Task:** Just press *check*.
+
+```{r "2_5__5",fig.width=12, fig.height=5}
+MD_e2 %>%
+  filter(electriccar=="2014 Ford Focus Electric") %>%
+  top_n(10, EPRIProf) %>%
+  arrange(desc(EPRIProf)) %>%
+  select(fips, state, countyname, urban, vmt, EPRIProf)
+MD_e2 %>%
+  filter(electriccar=="2014 Ford Focus Electric") %>%
+  top_n(-10, EPRIProf) %>%
+  arrange(EPRIProf) %>%
+  select(fips, state, countyname, urban, vmt, EPRIProf)
+```
+
+
+In contrast to the gasoline vehicles, all of the highest damage counties are non-urban regions and all of the lowest damage counties are urban regions. Furthermore, all ten lowest damage counties are in California. The differences in damages are huge. The highest damage counties reach damages seven times higher than those of the lowest damage counties. In comparison, however, they have much fewer vehicle miles traveled.
+
+To further analyze the differences between electric and gasoline vehicle damages, we will compare the two in the next exercise.
+
+
+## Exercise 3 -- Comparing Gasoline and Electric Vehicle Damages
+
+
+In this exercise, we *compare the environmental damages of gasoline and electric cars*. The individual data sets have been derived in Exercises 1 and 2. During these exercises, we have seen that the environmental damages differ greatly depending on the location in which the cars are driven. Now, we ask in which counties it is beneficial to drive electric instead of gasoline powered cars. Therefore, we follow the analysis of Holland et al. and introduce the concept of *environmental benefits* of electric vehicles. The environmental benefits are simply the differences in damages between electric and gasoline cars. That means, if gasoline cars have higher damages in a specific county, there is a positive environmental benefit and if the electric car's damages are higher, the environmental benefit is negative. This information might help to decide whether governmental policies like subsidies for electric cars are reasonable.
+
+Let's load in the first data set on electric vehicles. It is basically the one from last exercise, although I have restructured it a little bit to be more suitable for this exercise. The next chunk loads the file `MD_e2.Rds` into a data frame `MD_e` and shows the first rows using the `head()` command.
+
+**Task:** Just press *check*. 
+
+```{r "3"}
+MD_e <- readRDS("./Data/MD_e2.Rds")
+head(MD_e)
+```
+
+The data frame contains environmental damages for eleven electric car models in every county of the contiguous U.S. and some information about the counties. The damages are saved in the column `MD_el` (marginal damages electric), and are the values we derived in Exercise 2 assuming that the electric cars are charged according to the [EPRI charging profile](https://www.energy.gov/sites/prod/files/oeprod/DocumentsandMedia/EPRI-NRDC_PHEV_GHG_report.pdf).
+
+The second data set we need is the one on gasoline vehicles from Exercise 1. It has been restructured to fit our current analysis, too.
+
+**Task:** Just press *check*.
+
+```{r "3__2"}
+MD_g <- readRDS("./Data/MD_g.Rds")
+head(MD_g)
+```
+
+The data frame contains environmental damages for different gasoline vehicles in every county of the contiguous United States, saved in the column `MD_gas` (marginal damages gasoline). 
+
+As already stated at the beginning of Exercise 1, Holland et al. chose the set of gasoline vehicles to best match the non-price attributes of the eleven electric cars. If a gasoline-powered version of the electric vehicle model exists, this is the natural choice, like for example for the Ford Focus Electric and the gasoline Ford Focus. Otherwise, a similar car with conventional engine has been chosen. The following table shows which gasoline car was mapped to which electric car.
+
+**Task:** Just press *check*.
+
+```{r "3__3"}
+data.frame(model_e=MD_e$model_e[1:11], model_g=MD_g$model_g[1:11])
+```
+
+To visualize the environmental damages for the two vehicle types, we use a specific kind of plot, which is often called a *bean plot* due to its visual appearance. It is somewhat similar to a box plot and allows for the visual comparison of distributions. These plots can be quite easily generated using, for example, the packages `beanplot` or `yarrr`. However, these packages do not allow to draw weighted means, which we need to be able to compare U.S. average damages, weighted with county VMT, for the different car models. Therefore, I assembled my own version of a bean plot using the (almighty) package `ggplot2`. First, let's have a look at the gasoline vehicles.
+
+**Task:** Just press *check*.
+
+```{r "3__4",fig.width=17, fig.height=7}
+dat = data.frame(value=MD_g$MD_gas, group=MD_g$model_g, urban=MD_g$urban)
+dat$group <- recode(dat$group,"2014 Chevy Spark " = "2014 Chevy Spark",
+                    "2014 Honda Fit " = "Honda Fit",
+                    "2014 Fiat 500e" = "Fiat 500e",
+                    "Toyota Prius" = "Toyota Prius",
+                    "Chevy Spark" = "Chevy Spark",
+                    "2014 Smart fortwo coupe" = "Smart fortwo",
+                    "2014 Ford Focus " = "Ford Focus",
+                    "BMW 740i" = "BMW 740i",
+                    "BMW 750i" = "BMW 750i",
+                    "2014 Toyota Rav4 " = "2014 Toyota Rav4",
+                    "Toyota Rav4" = "Toyota Rav4")
+plotdat <- MD_g %>%
+  group_by(model_g) %>%
+  summarize(means=weighted.mean(MD_gas,vmt)) %>%
+  rename(group=model_g, means=means)
+plotdat <- plotdat[c(1, 4, 2, 10, 9, 5, 3, 7, 8, 6, 11),]
+
+ggplot(data = plotdat, aes(x = group, y = means)) +
+  scale_x_discrete(limits=c("2014 Chevy Spark " = "2014 Chevy Spark",
+                            "2014 Honda Fit " = "Honda Fit", 
+                            "2014 Fiat 500e" = "Fiat 500e",
+                            "Toyota Prius" = "Toyota Prius", 
+                            "Chevy Spark" = "Chevy Spark",
+                            "2014 Smart fortwo coupe" = "Smart fortwo", 
+                            "2014 Ford Focus " = "Ford Focus",
+                            "BMW 740i" = "BMW 740i",
+                            "BMW 750i" = "BMW 750i",
+                            "2014 Toyota Rav4 " = "2014 Toyota Rav4",
+                            "Toyota Rav4" = "Toyota Rav4")) +
+  geom_violin(data= dat, aes(x = group, y = value), fill = "grey60") +
+  geom_jitter(data= dat, aes(x = group, y = value, colour=factor(urban)),
+              shape = 1, width = .1, stroke=0, alpha=0.12) +
+  geom_segment(aes(x=rep(1:11)-0.25, xend=rep(1:11)+0.25, yend=means),
+               size=1.5) +
+  guides(fill=FALSE, color=FALSE) + 
+  xlab("Gasoline Car Model") +
+  ylab("Environmental Damages (cents/mile)") +
+  ggtitle("Comparison of Gasoline Car Damages by Model")
+```
+
+The chart contains a bean for each car model. The scattered points represent single observations, which in our case are damage values for the various counties. The points are colored blue if the respective county is an urban county and red if the county is non-urban. From the thickness of the gray part, you can tell how many observations lie on this height of the y-scale. The black, horizontal bar shows the VMT weighted average across all of the counties.
+
+You can see that there are many outliers with very high damage values. The highest value is represented by the height of the long spike. These high damage observations correspond to counties with very high population densities. For the highest damage car, the BMW 750i, damages reach more than 6 cents per mile. The damages of an average car, like the Ford Focus, reach from 1 to slightly above 4 cents per mile, with an average of 1.9 cents. You can see that most of the beans resemble the shape of an hour glass, so most counties belong to one of two groups. These two groups are formed by urban and non-urban counties. The group of non-urban counties, which is the lower one, contains more counties, as we can tell from the fact that the bottom part of the hour glass is thicker. However, the VMT weighted average bar lies very high, almost above the upper group. The reason for this is that the urban counties with higher population densities have higher VMT values and are therefore weighted more when calculating the average. The outliers with very high population densities and therefore very high VMT values pull the weighted average even further upwards.
+
+Let's now have a look at the same chart, but for electric vehicles.
+
+**Task:** Just press *check*.
+
+```{r "3__5",fig.width=17, fig.height=7}
+dat = data.frame(value=MD_e$MD_el, group=MD_e$model_e, nerc=MD_e$NERC)
+dat$group <- recode(dat$group, "2014 BYD e6" = "BYD e6",
+                    "2014 Chevy Spark EV" = "Chevy Spark",
+                    "2014 Fiat 500e" = "Fiat 500e",
+                    "2014 Ford Focus Electric" = "Ford Focus El.",
+                    "2014 Honda Fit EV" = "Honda Fit",
+                    "2014 Mitsubishi i-Miev" = "Mitsubishi i-Miev",
+                    "2014 Nisan Leaf" = "Nisan Leaf",
+                    "2014 Smart fortwo electric coupe" = "Smart fortwo",
+                    "2014 Tesla Model S (60 kW-hr)" = "Tesla S60",
+                    "2014 Tesla Model S (85 kW-hr)" = "Tesla S85",
+                    "2014 Toyota Rav4 EV" = "Toyota Rav4")
+plotdat <- MD_e %>%
+  group_by(model_e) %>%
+  summarize(means=weighted.mean(MD_el,vmt)) %>%
+  rename(group=model_e, means=means) %>%
+  arrange(means)
+
+ggplot(data = plotdat, aes(x = group, y = means)) +
+  scale_x_discrete(limits=
+                     c("2014 Chevy Spark EV" = "Chevy Spark",
+                       "2014 Honda Fit EV" = "Honda Fit",
+                       "2014 Fiat 500e" = "Fiat 500e",
+                       "2014 Nisan Leaf" = "Nisan Leaf",
+                       "2014 Mitsubishi i-Miev" = "Mitsubishi i-Miev",
+                       "2014 Smart fortwo electric coupe" = "Smart fortwo",
+                       "2014 Ford Focus Electric" = "Ford Focus El.",
+                       "2014 Tesla Model S (60 kW-hr)" = "Tesla S60",
+                       "2014 Tesla Model S (85 kW-hr)" = "Tesla S85",
+                       "2014 Toyota Rav4 EV" = "Toyota Rav4",
+                       "2014 BYD e6" = "BYD e6")) +
+  geom_violin(data= dat, aes(x = group, y = value), fill="gray70") +
+  geom_jitter(data= dat, aes(x = group, y = value, colour=nerc),
+              shape = 1, width = .1, stroke=1, alpha=0.12) +
+  geom_segment(aes(x=rep(1:11)-0.4, xend=rep(1:11)+0.4, yend=means),
+               size=1.5) +
+  guides(fill=FALSE, color=FALSE) + 
+  xlab("Electric Car Model") +
+  ylab("Environmental Damages (cents/mile)") +
+  ggtitle("Comparison of Electric Car Damages by Model")
+```
+
+The electric vehicles are in the same order as their matched gasoline ones, so the first bean here corresponds to the first bean in the plot above and so on. Here, the damages for a typical car like the Ford Focus Electric range from 0.7 to 4.7 cents per mile. The "dirtiest" electric vehicle by far is the BYD e6, reaching environmental damages of nearly 8 cents per mile. In contrast to the gasoline chart, there are hardly any outliers. This time, the color of the scattered points represents the NERC region to which the respective county belongs. You can see that the different counties in each bean can be divided into nine groups, which correspond to the nine NERC regions. The lowest group with damages well below 1 cent per mile are counties in California, the highest group corresponds to the Midwest. The U.S. average for the Electric Ford Focus is 2.6 cents per mile, which is more than the 1.9 cents per mile for the gasoline version of the same car.
+
+#! addon__quiz__Correlation Between Damages
+
+If the damages of electric and gasoline cars were highly correlated, one could expect the environmental benefits to be rather small in most counties. Let's calculate the correlation at the example of the Ford Focus.
+
+**Task:** Use the `filter()` from the `dplyr` package to filter the data set `MD_e` for the `model_e` "2014 Ford Focus Electric" and the data set `MD_g` for the `model_g` "2014 Ford Focus ". Save the results in data sets `temp1` and `temp2` and calculate the correlation of the columns `MD_el` and `MD_gas` of the respective data sets using the function `cor()`.
+
+```{r "3__6"}
+# temp1 <- filter(MD_e, model_e=="...")
+# temp2 <- ...( ... , ... =="2014 Ford Focus ")
+# cor(temp1$..., temp2$...)
+```
+
+The correlation is 0.07, which is a rather small value. We can expect many counties, in which the damages of electric and gasoline cars differ quite a bit.
+
+Now is the time to calculate the environmental benefits described above. For that purpose, we add a column to the data set `MD_e` which contains the difference between electric and gasoline vehicle damages. The data sets are both ordered according to the FIPS county codes and car models, so we can simply subtract the two columns.
+
+**Task:** Use the command `mutate()` from the `dplyr` package to add the column `MD_gas` and a column `envbenefits`, which contains the difference of the columns `MD_gas` and `MD_el`, to the data frame `MD_e`. Show the resulting data frame using `head()`.
+
+```{r "3__7"}
+# MD_e <- ...(MD_e, MD_gas = MD_g$MD_gas, ... = MD_gas - ...)
+# ...
+```
+
+We can see that in Autauga County, Alabama, the environmental benefits of the electric cars are negative. So based on environmental damages, it is better to drive gasoline cars in that place.
+
+Let's have a look at two more places. The first one is Los Angeles, California and the second Stearns County, Minnesota.
+
+**Task:** Filter the data frame `MD_e` using the command `filter()` to only get the rows for the "2014 Ford Focus Electric" in "Los Angeles" and "Stearns" and show the result.
+
+```{r "3__8"}
+# filter(MD_e, countyname=="..." | ... , model_e=="...")
+```
+
+The environmental damages of gasoline and electric cars vary considerably in these two places. In Los Angeles, there are large environmental benefits of 3.2 cents per mile, whereas in Stearns, the environmental benefits of electric vehicles are negative, which means that the damages of gasoline cars are 2.9 cents per mile lower. What are the reasons for these large differences? During Exercise 1, we have already seen that areas with a high population density tend to have high damages from gasoline vehicles, as most of the damages come from the impact of local pollutants. 
+
+#! addon__quiz__Population Density
+
+Indicated by the `vmt` value and the fact that gasoline vehicle damages are more than twice as high, we can guess that Los Angeles has a much higher population density than Stearns County. In fact, the population density in 
+[Los Angeles County](https://en.wikipedia.org/wiki/Los_Angeles_County,_California) is 2,100 and in 
+[Stearns County](https://en.wikipedia.org/wiki/Stearns_County,_Minnesota) only 112 people per square mile. However, this doesn't explain the huge difference in electric vehicle damages of 0.7 cents per mile in Los Angeles versus 4.5 cents per mile in Stearns. To see why this is the case, let's have a look at the fuel mix of the generation capacities in the regions where the counties are located and the U.S. national fuel mix for comparison. The data comes from the [EPA power profiler](https://www.epa.gov/energy/power-profiler). The following code chunk draws three pie charts, because they are commonly used for the depiction of energy generation by energy source. The package `gridExtra` is used to arrange the plots next to each other.
+
+**Task**: Just press *check*.
+
+```{r "3__9",fig.width=18, fig.height=5}
+
+stearns <- data.frame(source=c("non-hydro renewables", "hydro", "nuclear", "oil", "gas", "coal"), 
+                      share=c(0.224, 0.05, 0.128, 0.002, 0.067, 0.527))
+national <- data.frame(source=c("non-hydro renewables", "hydro", "nuclear", "oil", "gas", "coal"), 
+                       share=c(0.085, 0.064, 0.198, 0.006, 0.338, 0.304))
+la <- data.frame(source=c("non-hydro renewables", "hydro", "nuclear", "oil", "gas", "coal"), 
+                 share=c(0.247, 0.121, 0.094, 0.001, 0.484, 0.043))
+
+plot1 <- ggplot(stearns, aes(x="", y=share, fill=source)) + 
+  geom_bar(width = 1, stat = "identity") + 
+  coord_polar("y", start=0) + 
+  scale_fill_manual(values=c("black", "#624389", "#4898F1", "#33E6C8", "#AA1819", "darkolivegreen1")) + 
+  ggtitle("Fuel Mix in Stearns County (Upper Midwest)")
+plot2 <- ggplot(la, aes(x="", y=share, fill=source)) +
+  geom_bar(width = 1, stat = "identity") +
+  coord_polar("y", start=0) +
+  scale_fill_manual(values=c("black", "#624389", "#4898F1", "#33E6C8", "#AA1819", "darkolivegreen1")) +
+  ggtitle("Fuel Mix in Los Angeles (California)")
+plot3 <- ggplot(national, aes(x="", y=share, fill=source)) + 
+  geom_bar(width = 1, stat = "identity") + 
+  coord_polar("y", start=0) + 
+  scale_fill_manual(values=c("black", "#624389", "#4898F1", "#33E6C8", "#AA1819", "darkolivegreen1")) + 
+  ggtitle("Fuel Mix U.S. national")
+
+grid.arrange(plot1, plot2, plot3, ncol=3)
+```
+
+The first chart shows the fuel mix in the region were Stearns County is located, which is the Upper Midwest. More than half of the electricity production is based on coal as an energy source. In the second chart, which depicts the fuel mix in California, gas constitutes the major energy source. Here, coal has only a small share of 4.3%, comparable to the share of gas in Stearns County, which is 6.7%. Over all, the Upper Midwest has less hydro and non-hydro renewables and more fossil-fueled power generation than California. From an emissions point of view, this is partly compensated by a higher share in nuclear power in the Upper Midwest. Oil is not a substantial factor in both regions. Compared to the U.S. national fuel mix on the right, the Upper Midwest seems highly coal-dependent and California very much gas focused. On a national level, the two fossil fuels are more balanced, but achieve a bigger share in total at the cost of hydro and non-hydro renewables.
+
+With this knowledge, we can explain why the environmental benefits are so different in the two places. In the region where Stearns County is located, the electric power generation is very "dirty" because of the high share of coal as a fuel. This leads to high electric vehicle damages, while the damages of gasoline cars are low due to the low population density. In contrast to that, California has a relatively clean energy grid with a high share in gas and renewables. This leads to low electric vehicle damages, while the damages from gasoline vehicles are high due to the high population density. These examples show that the environmental benefits of electric vehicles can highly depend on the place where they are driven.
+
+After these examples, let's have a look at some summary statistics to better evaluate the environmental benefits of electric cars on a larger scale. We recreate the first column of Table 2, Panel B in Holland et al. This table shows the mean, minimum and maximum environmental benefits of the different car models over all counties. Like in previous exercises, we weight by vehicle miles traveled (VMT) when calculating means and use a `dplyr` chain to accomplish the task.
+
+**Task:** Use the `group_by()` command to group the data set `MD_e` by the variable `model_e`. Then use the `summarize()` function to create a table which shows the `weighted.mean()` (with the column vmt as weights), `min()` and `max()` of the variable `envbenefits` for the individual groups. Arrange the table in descending order regarding the mean by using `arrange(desc())`. Connect the commands using the *pipe operator* `%>%`.
+
+```{r "3__10"}
+# MD_e %>%
+# ... %>%
+# summarize(mean_envben = weighted.mean(envbenefits, vmt), 
+#           min_envben = ..., 
+#           max_envben = ... ) %>%
+# ...(desc(mean))
+```
+
+On average, the environmental benefits are negative for each electric vehicle and range from -0.4 cents per mile for the Honda Fit EV to -2.3 cents per mile for the BYD e6. The Electric Ford Focus is exactly in the middle of the table, so five of the models have less environmental benefits and five have higher ones. It can therefore be seen as the median model, which is the reason why we often chose the Electric Ford Focus as an example and will continue to do so.
+
+In Exercise 2.5 we saw that the damages of electric vehicles are mostly uniform within NERC regions, but vary considerably between regions. To see if we can find regions where the environmental benefits are positive on average, let's calculate the mean environmental benefits by NERC region. Within regions, we once again weight with vehicle miles traveled (VMT) and use the Electric Ford Focus as an example. To visualize the results, we use a bar plot, in which the heights of the bars show the mean environmental benefits for each NERC region and the width of each bar the corresponding VMT share for this region. I used the packages `magick` and `gridExtra` to put a map of the U.S. next to the plot, so you can see where the NERC regions are.
+
+**Task:** Just press *check*.
+
+```{r "3__11",fig.width=18, fig.height=7}
+library(ggplot2)
+library(magick)
+library(gridExtra)
+
+MD_e <- mutate(MD_e, vmt_share = vmt/sum(vmt))
+data <- MD_e %>%
+  filter(model_e=="2014 Ford Focus Electric") %>%
+  group_by(NERC) %>%
+  summarize(mean = weighted.mean(envbenefits, vmt),
+            vmt = sum(vmt_share)) %>%
+  mutate(vmt=vmt/sum(vmt)) %>%
+  arrange(desc(mean))
+data$right=cumsum(data$vmt)-0.003
+data$left=data$right - data$vmt+0.006
+
+image <- image_read("./Pictures/NERC_22.png")
+image <- image_ggplot(image)
+plot <- ggplot(data) + 
+  geom_rect(aes(xmin = left, xmax = right, ymin=0, ymax = mean, colour = NERC, fill = NERC)) + 
+  geom_hline(yintercept=0, size=1) +
+  geom_text(aes(x=left+0.5*(right-left), y=mean/2,
+                label=c("CA","WECC","ERCOT","FRCC","SPP","SERC","NPCC","RFC","MISO")),
+            angle=90, color="grey18") +
+  xlab("VMT share") +
+  ylab("Environmental Benefits (cents/mile)") +
+  ggtitle("Environmental Benefits of a Ford Focus Electric by NERC Regions") +
+  guides(fill=FALSE, color=FALSE)
+grid.arrange(plot,image,ncol=2)
+```
+
+
+There are three regions with positive mean environmental benefits: California, the West and the Texas Interconnection. However, they only make up for 29% of the total vehicle miles traveled. This is the reason why the overall environmental benefits are negative for each car, as we have seen in the table before. The lowest values occur in the MISO region, which is the Upper Midwest. We have already seen environmental damages in Stearns County as an example from this region. The region with the largest VMT share is the SERC region, which is the Southeastern U.S. It has negative environmental benefits of about -1 cents per mile.
+
+In Exercise 4, we want to use our knowledge about environmental benefits to figure out appropriate electric vehicle policy setting.
+
+
+## Exercise 4.1 -- Theoretical Model on Electric Vehicle Subsidies
+
+
+In the U.S., the purchase of electric vehicles is incentivized by [different subsidies](https://www.energy.gov/eere/electricvehicles/electric-vehicles-tax-credits-and-other-incentives) on federal and state level. These subsidies can be considerable. For example, all of the electric vehicles we assessed in the last exercises are eligible for a 7,500 dollar federal tax credit, with possible additional incentives on the state level. In this exercise, our aim is to use our previous results on electric and gasoline vehicle damages to *evaluate the form and amount of electric vehicle subsidies*. For this purpose, Holland et al. introduce a *theoretical discrete choice model*. In this model, customers have the choice to purchase either a gasoline or an electric car. First, I explain the theoretical part of the model, and then, like Holland et al., we use it to determine *welfare maximizing subsidies* on electric vehicle purchases. A general form of the model used here can be found in Small and Rosen (1981).
+
+The results of this exercise are the following two propositions:
+
+**Proposition 1:**
+
+*The first-best differentiated policy is taxes* $t^*_{gi}$ *on gasoline miles and* $t^*_{ei}$ *on electric miles, which are equal to the damages caused when driving in location* $i$.
+
+**Proposition 2:**
+
+*The second-best differentiated policy is a subsidy* $s^*_i$ *on the purchase of an electric car in location* $i$ *, which is equal to the difference in lifetime damages between the electric car and the corresponding gasoline car.*
+
+If you are interested in a more precise statement of the Propositions and their derivation, just continue to read. Otherwise, you can proceed to the next exercise.
+
+In the model used by Holland et al., the consumer can choose to drive gasoline miles $g$, electric miles $e$ or consume a composite good $x$, which stands for all other forms of consumption. The price of the composite good $x$ is normalized to one. The prices for gasoline and electric miles are $p_g$ and $p_e$, respectively. Governmental policies are in the form of a subsidy $s$ for purchasing an electric vehicle or taxes on gasoline or electric miles, $t_g$ and $t_e$. If we denote income with $I$ and use a concave function $f$ to attribute for distinct properties of the gasoline vehicle, the utility of a new vehicle purchase is
+
+$$V_g = \max_{x,g} x + f(g) \quad \text{such that} \quad x+(p_g+t_g)g=I-P_\Psi$$
+
+in the case of a gasoline vehicle with price $P_\Psi$, and 
+
+$$V_e = \max_{x,e} x + h(e) \quad \text{such that} \quad x+(p_e+t_e)e=I-P_{\Omega}$$
+
+for an electric vehicle with price $P_\Omega$, where $h$ also is a concave function. Any non-price differences between the gasoline and the electric vehicle are captured by the functions $f$ and $h$. Note that the number of miles driven, as well as the choice of vehicle, does not depend on income, and the marginal utility of income is one, so there are no income effects.
+
+To define whether a costumer chooses the gasoline or the electric vehicle, we introduce a random disturbance in the form of two random variables $\epsilon_g$ and $\epsilon_e$, which are added to the utilities.
+
+That means, we compare
+
+$$\mathcal{U}_g = V_g + \epsilon_g$$
+
+and
+
+$$\mathcal{U}_e = V_e + \epsilon_e$$
+
+and a costumer then selects the gasoline vehicle if $\mathcal{U}_g > \mathcal{U}_e$.
+
+The random variables $\epsilon_g$ and $\epsilon_e$ are independently drawn from the same extreme value distribution, namely the *type I* or *Gumbel extreme value distribution*. The Gumbel distribution has two parameters: a location parameter $\mu\in\mathbb{R}$ and a scale parameter $\beta>0$. The probability density function of the Gumbel distribution is
+
+$$f(x;\mu,\beta)=\frac{1}{\beta}e^{-\frac{1}{\beta}(x-\mu)} e^{-e^{-\frac{1}{\beta}(x-\mu)}}.$$
+
+Let's plot the density function with a few different parameter settings to get a feeling of how the Gumbel distribution looks like. The following code chunk uses the packages `evd` (extreme value distributions) and `ggplot2` to plot the density functions of three different Gumbel distributions together with a standard normal distribution.
+
+**Task:** Just press *check*.
+
+```{r "4_1",fig.width=11, fig.height=7}
+library(evd)
+fun.1 <- function(x) dgumbel(x, loc=0, scale=1)
+fun.2 <- function(x) dgumbel(x, loc=1, scale=1)
+fun.3 <- function(x) dgumbel(x, loc=1, scale=2)
+fun.4 <- function(x) dnorm(x, mean=0, sd=1)
+p <- ggplot(data = data.frame(x = 0), mapping = aes(x = x))
+p +
+  ggtitle("Gumbel Distribution Densities") +
+  layer(geom="line", position = "identity", stat = "function",
+        params = list(fun = fun.1),
+        mapping = aes(color = "fun.1")
+  ) +
+  layer(geom="line", position = "identity", stat = "function",
+        params = list(fun = fun.2),
+        mapping = aes(color = "fun.2")
+  ) +
+  layer(geom="line", position = "identity", stat = "function",
+        params = list(fun = fun.3),
+        mapping = aes(color = "fun.3")
+  ) +
+  layer(geom="line", position = "identity", stat = "function",
+        params = list(fun = fun.4),
+        mapping = aes(color = "fun.4")
+  ) +
+  scale_x_continuous(limits = c(-5, 7)) +
+  scale_color_manual(name = "Densities",
+                     values = c("blue", "red", "green", "black"), # Color specification
+                     labels = c("Gumbel(0,1)", "Gumbel(1,1)", "Gumbel(1,2)", "N(0,1)"))
+```
+
+If you compare the standard Gumbel distribution ($\mu=0, \beta=1$, blue) with the standard normal distribution (black), you can see that the Gumbel distribution has more probability mass on higher values. The red graph is the right-shifted version of the Gumbel distribution with a location parameter of $\mu=1$. The green graph has parameters $\mu=1$ and $\beta=1$. The Gumbel distribution has two properties, which we need for our further analysis:
+
+**Property 1.** The difference $X-Y$ of two identically $Gumbel(\mu,\beta)$ distributed random variables $X$ and $Y$ follows a *logistic distribution* with cumulative distribution function
+
+$$F(x;\beta)=\frac{1}{1+e^{-x/\beta}}.$$
+
+**Property 2.** The linear transformation $aX+b$, $a>0, b\in\mathbb{R}$, of a $Gumbel(\mu,\beta)$ distributed random variable $X$ is still Gumbel distributed with parameters $(a\mu+b, a\beta)$. For $a=1$, this means that the Gumbel distribution is translationally invariant.
+
+The proofs are in the info box below. You can also find further information on the subject for example in Train (2009).
+
+info("Properties of the Gumbel distribution: Proofs") # Run this line (Strg-Enter) to show info
+
+Coming back to our model, we stated that the costumer chooses the vehicle which gives him higher utility. The first property of the Gumbel distribution now makes it easy to calculate the probability that a costumer selects the gasoline vehicle. This is one of the reasons why the random elements $\epsilon_g$ and $\epsilon_e$ are chosen to be Gumbel distributed. The choice probabilities are calculated as follows:
+
+$$\begin{split} 
+& P(\mathcal{U}_g > \mathcal{U}_e) \\\
+= \space & P(V_g+\epsilon_g > V_e + \epsilon_e) \\\
+= \space & P(V_g-V_e > \epsilon_e-\epsilon_g) \\\
+= \space & P(\epsilon_e-\epsilon_g \leq V_g-V_e) \quad & [\text{Gumbel distribution is absolutely continuous}] \\\
+= \space & \frac{1}{1+e^{-(V_g-V_e)/\beta}} \quad & [\text{Property 1 and cumulative distribution function of logistic distribution}] \\\
+= \space & \frac{e^{V_g/\beta}}{e^{V_g/\beta}+e^{V_e/\beta}}.
+\end{split}$$
+
+The probability that a costumer selects the electric vehicle is then of course the complementary probability
+
+$$1-P(\mathcal{U}_g > \mathcal{U}_e)
+= \frac{e^{V_e/\beta}}{e^{V_g/\beta}+e^{V_e/\beta}}.$$
+
+If the random disturbances to the utility have a translationally invariant distribution, Williams (1977) and Ben-Akiva and Lerman (1979) have shown that
+
+$$\frac{dE\left(\max(\mathcal{U}_g,\mathcal{U}_e)\right)}{dV_g} = P(\mathcal{U}_g > \mathcal{U}_e).$$
+
+The Gumbel distribution is translationally invariant, as we have seen in the second property above. So in our case:
+
+$$\frac{dE\left(\max(\mathcal{U}_g,\mathcal{U}_e)\right)}{dV_g}
+= \frac{e^{V_g/\beta}}{e^{V_g/\beta}+e^{V_e/\beta}}.$$
+
+Integrating both sides yields the expected utility for a new vehicle purchase
+
+$$E\left(\max(\mathcal{U}_g,\mathcal{U}_e)\right)
+= \int \frac{e^{V_g/\beta}}{e^{V_g/\beta}+e^{V_e/\beta}} dV_g
+= \beta \ln\left(e^{V_g/\beta}+e^{V_e/\beta}\right).$$
+
+As we have seen during our analysis in Exercise 3, the locations, in which electric or gasoline cars are driven, are crucial for the amount of pollution damages they create. Therefore, Holland et al. introduce multiple locations into the model in the following way: There are $m$ different locations, each of which has a share of $\alpha_i$ of the total population of new vehicle buyers. The damages that arise from driving in location $i$ consist of the local damages in location $i$, the local damages in all other locations and the global damages (from CO<sub>2</sub>). All of these damages together are referred to as *full damages*. We denote with $\delta_{gi}$ the marginal full damages (in dollars per mile) from driving a gasoline car in location $i$, and with $\delta_{ei}$ the same for an electric car. Note that this assumes that the marginal damages are constant. This is however in line with the way the EPA treats the [social cost of carbon](https://19january2017snapshot.epa.gov/climatechange/social-cost-carbon_.html) for the global pollutant CO<sub>2</sub> and how the local damages are treated for example in Muller and Mendelsohn (2009) and in Fowlie and Muller (2013).
+
+In the following, we consider *differentiated regulation*. That means, the policy may vary between locations and is selected by a local government. The local government considers *full damages* caused by driving in location $i$ and tries to maximize the welfare $\mathcal{W}_i$ associated with the purchase of a new vehicle in location $i$. If we denote with $R_i$ the expected revenue of the local government, this welfare can be calculated as
+
+$$\mathcal{W}_i = 
+\underbrace{\beta \ln(e^{V_{ei}/\beta}+e^{V_{gi}/\beta})}_{\text{exp. utility}} + 
+\underbrace{R_i}_{\text{exp. revenue}} -
+\underbrace{(\delta_{gi}\pi_i g_i+\delta_{ei}(1-\pi_i) e_i)}_{\text{exp. pollution damage}}.$$
+
+First, we assume taxes on gasoline and electric miles, differentiated by location, so the government's revenue in location $i$ is $R_i=t_{gi}\pi_i g_i+t_{ei}(1-\pi_i)e_i$. Optimizing $\mathcal{W}_i$ yields our first proposition.
+
+**Proposition 1:**
+
+*The first-best differentiated policy is taxes* $t^*_{gi}$ *on gasoline miles and* $t^*_{ei}$ *on electric miles, where*
+
+$$t^*_{gi}=\delta_{gi} \quad \text{ and } \quad t^*_{ei}=\delta_{ei}.$$
+
+The proof can be found in Holland et al. (Online Appendix B).
+
+This result agrees with our economic instinct: the taxes are equal to the damages caused.
+In reality, taxes on gasoline or electric miles do not exist in the U.S. As already stated above, the market is rather regulated by a purchase subsidy for electric vehicles. Therefore, the next proposition gives the optimal purchase subsidy for an electric vehicle in location $i$. We refer to the optimal purchase subsidy as the *second-best* policy. Again, the local governments take into account full damages from driving in location $i$. The government's revenue in this setting is $R_i=-s(1-\pi)$.
+
+**Proposition 2:**
+
+*The second-best differentiated subsidy on the purchase of an electric car in location* $i$ *is given by*
+
+$$s^*_i = \delta_{gi}g_i-\delta_{ei}e_i.$$
+
+This proposition corresponds to Proposition 1 in the article by Holland et al.
+The proof can be found in Holland et al. (Online Appendix A).
+
+The purchase subsidy is the difference in damages caused during the driving lifetime of the gasoline and the electric vehicle. If both vehicles are driven the same amount of miles ($g_i=e_i$), the subsidy is positive if the electric vehicle causes less pollution damage per mile ($\delta_{ei}<\delta_{gi}$).
+
+In the following exercise, we combine this proposition with our previous results on environmental benefits of electric vehicles to calculate electric vehicle subsidies for different locations in the U.S.
+
+
+## Exercise 4.2 -- Examining Electric Vehicle Subsidies
+
+
+From Proposition 2 in Exercise 4.1 we know that the second-best subsidy on the purchase of an electric vehicle is the difference in lifetime damages of the electric and the corresponding gasoline vehicle. In this exercise, we calculate that subsidy for different locations in the U.S.
+
+To calculate lifetime damages, we have to assume the total miles for which a vehicle in the U.S. is driven during its lifetime. Holland et al. assume a value of 150,000 miles without giving any evidence. The U.S. Department of Transportation gives a value of 13,476 for the average annual miles per driver on their [Website](https://www.fhwa.dot.gov/ohim/onh00/bar8.htm) and Statista estimates the [U.S. average vehicle age](https://www.statista.com/statistics/738667/us-vehicles-projected-age/) to be 11.7 years. Multiplying theses numbers results in an estimate of 157,669 miles per vehicle, so the assumption by Holland et al. seems reasonable.
+
+It is not clear whether electric vehicles are driven for the same distance as gasoline cars during their lifetime. It could be possible that electric cars are driven more because of lower costs per mile, but they could also be driven less due to range restrictions and charging times. As we have no information on these effects, we continue by assuming that both electric and gasoline vehicles are driven for 150,000 miles.
+
+Now, to start calculating purchase subsidies, we load the data set on environmental benefits which we derived and analyzed in Exercise 3. The next chunk loads the data set `envben.Rds` into a data frame `envben` and shows it using the `head()` command.
+
+**Task:** Just press *check*.
+
+```{r "4_2"}
+envben <- readRDS("./Data/envben.Rds")
+head(envben)
+```
+
+The data set contains electric vehicle damages in cents per mile for each car model in every county in the column `MD_el`, the damages of the corresponding gasoline vehicle in the column `MD_gas` and the resulting environmental benefits of the electric car in the column `envbenefits`, as well as additional information on the counties in the remaining columns.
+
+To calculate the purchase subsidies, we have to multiply the environmental benefits with our assumption of 150,000 lifetime vehicle miles. We divide through 100 to get the result in dollars per vehicle (rather than cents).
+
+**Task:** Use the command `mutate()` from the `dplyr` package to add a column `subsidy` to the data frame `envben`, which contains the column `envbenefits` multiplied with 150,000 and divided by 100.
+
+```{r "4_2__2"}
+# ... <- ...(envben, subsidy = envbenefits * ... / ...)
+```
+
+To visualize the resulting subsidies on the county level, we first draw a choropleth map. You already know these from Exercises 1 and 2. We filter for the Ford Focus Electric as our usual sample vehicle.
+
+**Task:** Just press *check*.
+
+```{r "4_2__3",fig.width=16, fig.height=7}
+envben %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  select(region=fips, value=subsidy) %>%
+  county_choropleth(title="Second-Best Purchase Subsidy for Electric Vehicles on County Level", legend="Subsidy in $", num_colors=0)
+```
+
+The blue-colored counties have positive purchase subsidies, whereas the subsidies in the red-colored counties are negative, which is basically a tax. As you can see, positive subsidies only occur in the west, in parts of Texas and in major population centers like New York City. There are large regions with intense red coloring, indicating that the purchase subsidy is large and negative in these parts of the U.S.
+
+As it is unfeasible to implement an electric vehicle purchase subsidy on the county level, let's have a look at the same picture aggregated to states, where we weight with vehicle miles traveled.
+
+**Task:** Just press *check*.
+
+```{r "4_2__4",fig.width=16, fig.height=7}
+envben %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy=weighted.mean(subsidy, vmt)) %>%
+  transmute(region=tolower(state), value=avg_subsidy) %>%
+  state_choropleth(title="Second-Best Purchase Subsidy for Electric Vehicles on State Level", legend="Subsidy in $", num_colors=0)
+```
+
+There are only eleven states which have positive values for the purchase subsidy. Montana is slightly below zero because the boundaries of the Western Interconnection do not exactly follow state borders and so some counties in Montana are served by the much "dirtier" electricity grid of the Upper Midwest. Texas, which contained counties with positive and negative subsidies, has a positive value overall due to the higher vehicle miles traveled in the positive areas. To better see some actual monetary values, let's have a look at the five highest and lowest subsidy states.
+
+**Task:** Just press *check*.
+
+```{r "4_2__5"}
+temp <- envben %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy=weighted.mean(subsidy, vmt))
+
+temp %>%
+  top_n(5, avg_subsidy) %>%
+  arrange(desc(avg_subsidy))
+temp %>%
+  top_n(-5, avg_subsidy) %>%
+  arrange(avg_subsidy)
+```
+
+California is by far the state which benefits most from driving electric instead of gasoline vehicles, with a positive purchase subsidy of 2785 dollars. We have already analyzed the reasons for this in Exercise 3, namely a relatively clean electricity grid combined with regions of very high population density. The opposite is true for the regions in the Upper Midwest, where the states with the lowest subsidies can be found: low population densities and a high share in coal-fired power generation. It is remarkable that the negative subsidy states have much higher absolute values than the positive subsidy states: between -4000 and -5000 dollars for the five lowest-subsidy states compared to 900 - 2800 dollars for the highest-subsidy states.
+
+#! addon__quiz__US Average Purchase Subsidy
+
+Let's calculate the U.S. average purchase subsidy to see the actual result.
+
+**Task:** Just press *check*.
+
+```{r "4_2__6"}
+envben %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  summarize(avg_subsidy=weighted.mean(subsidy, vmt))
+```
+
+
+So the overall subsidy is indeed negative with a value of -1095 dollars.
+
+In the next exercise we talk about pollution export and how it might affect electric vehicle policy making.
+
+
+## Exercise 5 -- Pollution Export
+
+
+In this exercise, we examine to what degree pollution damages are *exported* from the place where electric or gasoline cars are driven to other locations. As a first step, we decompose the full environmental damages into *local damages* caused by the local pollutants SO<sub>2</sub>, NO<sub>x</sub>, PM<sub>2.5</sub> and VOCs and *global damages* from CO<sub>2</sub>. In a second step, we only consider damages from local pollutants and differentiate between *native* and *exported* damages. Native damages are the local damages that occur within the location where the vehicles are driven and exported damages are those which occur in other locations. In both cases, we analyze whether electric and gasoline cars differ in the distribution of their damages between the two types.
+
+I have prepared a data set which is very similar to the one in Exercise 3, except this time the columns for electric and gasoline full damages have been split into local and global damages. Let's have a quick look at the data.
+
+**Task:** Just press *check*.
+
+```{r "5"}
+MD <- readRDS("./Data/MD_export.Rds")
+head(MD)
+```
+
+Additionally to the usual columns with county information and car model, we have the local, global and full marginal damages from electric and gasoline vehicles and the environmental benefits calculated with local and global damages separately. Like in Exercise 3, the local environmental benefits are simply the differences between gasoline and electric local damages. The same holds for the global environmental benefits. The columns ending with `state_local` or `county_local` only contain the local damages that occur within the state or county where the car is driven. We will have a closer look at these so-called *native damages* later on.
+
+First, we want to recreate the data in the middle and right column of Table 2, Panel B in Holland et al. and visualize the results. The table shows the mean environmental benefits of our eleven electric vehicles, differentiated between local and global damages. As always, we weight the different counties with vehicle miles traveled. To visualize the results, we transform the data set using the function `melt()` from the package `reshape2` and draw a stacked bar chart using `ggplot2`.
+
+**Task:** Just press *check*.
+
+```{r "5__2",fig.width=14, fig.height=6}
+library(reshape2)
+
+means <- MD %>%
+  group_by(model_e) %>%
+  summarize(Local = weighted.mean(envbenefits_local, vmt),
+            Global = weighted.mean(envbenefits_global, vmt))
+
+data <- melt(means,id.vars="model_e")
+data <- mutate(data, sum=rep(means$Local+means$Global,2))
+
+data$model_e <- recode(data$model_e, "2014 BYD e6"="BYD e6", "2014 Chevy Spark EV"="Chevy Spark EV", 
+                       "2014 Fiat 500e"="Fiat 500e", "2014 Ford Focus Electric"="Ford Focus Electric", 
+                       "2014 Honda Fit EV"="Honda Fit EV","2014 Mitsubishi i-Miev"="Mitsubishi i-Miev", 
+                       "2014 Nisan Leaf"="Nisan Leaf", "2014 Smart fortwo electric coupe" = "Smart fortwo", 
+                       "2014 Tesla Model S (60 kW-hr)"="Tesla S60", "2014 Tesla Model S (85 kW-hr)"="Tesla S85", 
+                       "2014 Toyota Rav4 EV"="Toyota Rav4 EV")
+
+ggplot(data, aes(x = model_e, y = value, fill=variable)) +
+  geom_bar(stat='identity') +
+  geom_segment(aes(x=rep(rep(1:11),2)-0.45, xend=rep(rep(1:11),2)+0.45,y=sum, yend=sum), 
+               size=1.5, color="grey18") +
+  geom_hline(yintercept=0, size=1) +
+  xlab("Electric Car Model") +
+  ylab("Environmental Benefits (cents/mile)") +
+  ggtitle("Comparison of Electric Car Local and Global Environmental Benefits by Model") + 
+  labs(fill="Mean Benefits") 
+```
+
+The blue bars represent mean *global* environmental benefits and the red bars mean *local* environmental benefits. The black segment shows the sum of the two: mean environmental benefits when considering *full damages*. What immediately catches attention is the fact that almost all electric vehicles have positive global environmental benefits, but negative local environmental benefits on average. The only two exceptions are the BYD e6 and the Nisan Leaf, which have negative global and local environmental benefits. When focusing solely on the greenhouse gas CO<sub>2</sub>, electric cars indeed cause less damage on average. It is often said that electric cars are more climate-friendly, which we can tell from the data is mostly right. However, if we also account for local damages, the picture changes considerably. The positive global effects are in most places more than offset by the negative environmental benefits from local pollutants, which we can see at the black bars being all below zero. This shows that we should always consider *full damages* and not focus on local or global damages alone.
+
+Now let's see what happens when we differentiate between native damages, which occur within the location where the cars are driven, and exported damages, which occur in other locations. To get a first impression on how gasoline and electric cars differ in the degree of exported damages, have a look at the following two graphics. Unfortunately, the data to reproduce the maps is unavailable, so I took the depictions directly from Holland et al. The graphics show how the concentration of PM<sub>2.5</sub> in the air changes in one year when a fleet of 10,000 Ford Focus are driven for 15,000 miles each in Fulton County, Georgia. In the left picture, emissions of the gasoline Ford Focus are depicted. You can see that the increase in concentration of the pollutant is highly focused at the point of origin and spreads to nearby states. In the right picture, where you can see emissions of the Ford Focus Electric, there is no clear pollution center and the increase in concentration spans almost the entire eastern U.S. This is due to the fact that electric power generation is distributed throughout the grid and the pollutants are released at a much higher point through tall smokestacks and therefore spread over the country.
+
+<center>
+<table>
+<tr><td>
+<figure>
+  <img src="./Pictures/pm25_gas.png" height="310px" width="430px"  hspace="20"/>
+  <figcaption></figcaption>
+</figure>
+</td><td>
+<figure>
+  <img src="./Pictures/pm25_el.png" height="310px" width="430px"  hspace="20"/>
+  <figcaption> &nbsp; </figcaption>
+</figure>
+</td></tr>
+</table>
+</center>
+(Source: Holland et al.)
+
+To analyze the extent to which pollution is exported, we calculate the mean damages on full, local, native state and native county scale for both gasoline and electric cars. To visualize the results, two bar plots are drawn.
+
+**Task:** Just press *check*.
+
+```{r "5__3",fig.width=17, fig.height=9}
+library(reshape2)
+library(ggplot2)
+library(gridExtra)
+
+#gasoline
+data1 <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  summarize(mean_gas_full = weighted.mean(MD_gas_full, vmt), 
+            mean_gas_local = weighted.mean(MD_gas_local, vmt),
+            mean_gas_state = weighted.mean(MD_gas_state_local, vmt),
+            mean_gas_county = weighted.mean(MD_gas_county_local, vmt))
+data1 <- melt(data1)
+plot1 <- ggplot(data=data1, aes(x=variable, y=value)) +
+  ggtitle("Export of Gasoline Ford Focus Damages") +
+  xlab("") + 
+  ylab("Mean Environmental Damages (cents/mile)") +
+  geom_bar(stat="identity") +
+  geom_segment(x=1.1, xend=1.1, y=data1$value[1]+0.01, yend=data1$value[1]+0.04) +
+  geom_segment(x=1.1, xend=1.65, y=data1$value[1]+0.04, yend=data1$value[1]+0.04) +
+  geom_segment(x=1.65, xend=1.65, y=data1$value[1]+0.04, yend=data1$value[2]+0.04, 
+               arrow=arrow(length=unit(0.30,"cm"),type = "closed")) +
+  geom_text(x=1.375, y=data1$value[1]+0.07, label="-71%",size=3) +
+  
+  geom_segment(x=2.1, xend=2.1, y=data1$value[2]+0.01, yend=data1$value[2]+0.04) +
+  geom_segment(x=2.1, xend=2.65, y=data1$value[2]+0.04, yend=data1$value[2]+0.04) +
+  geom_segment(x=2.65, xend=2.65, y=data1$value[2]+0.04, yend=data1$value[3]+0.04, 
+               arrow=arrow(length=unit(0.30,"cm"),type = "closed")) +
+  geom_text(x=2.375, y=data1$value[2]+0.07, label="-19%",size=3) +
+  
+  geom_segment(x=3.1, xend=3.1, y=data1$value[3]+0.01, yend=data1$value[3]+0.04) +
+  geom_segment(x=3.1, xend=3.65, y=data1$value[3]+0.04, yend=data1$value[3]+0.04) +
+  geom_segment(x=3.65, xend=3.65, y=data1$value[3]+0.04, yend=data1$value[4]+0.04, 
+               arrow=arrow(length=unit(0.30,"cm"),type = "closed")) +
+  geom_text(x=3.375, y=data1$value[3]+0.07, label="-48%",size=3)
+
+#electric
+data2 <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  summarize(mean_el_full = weighted.mean(MD_el_full, vmt), 
+            mean_el_local = weighted.mean(MD_el_local, vmt),
+            mean_el_state = weighted.mean(MD_el_state_local, vmt),
+            mean_el_county = weighted.mean(MD_el_county_local, vmt))
+data2 <- melt(data2)
+plot2 <- ggplot(data=data2, aes(x=variable, y=value)) +
+  ggtitle("Export of Electric Ford Focus Damages") +
+  xlab("") + 
+  ylab("Mean Environmental Damages (cents/mile)") +
+  geom_bar(stat="identity") +
+  geom_segment(x=1.1, xend=1.1, y=data2$value[1]+0.01, yend=data2$value[1]+0.04) +
+  geom_segment(x=1.1, xend=1.65, y=data2$value[1]+0.04, yend=data2$value[1]+0.04) +
+  geom_segment(x=1.65, xend=1.65, y=data2$value[1]+0.04, yend=data2$value[2]+0.04, 
+               arrow=arrow(length=unit(0.30,"cm"),type = "closed")) +
+  geom_text(x=1.375, y=data2$value[1]+0.07, label="-34%",size=3) +
+  
+  geom_segment(x=2.1, xend=2.1, y=data2$value[2]+0.01, yend=data2$value[2]+0.04) +
+  geom_segment(x=2.1, xend=2.65, y=data2$value[2]+0.04, yend=data2$value[2]+0.04) +
+  geom_segment(x=2.65, xend=2.65, y=data2$value[2]+0.04, yend=data2$value[3]+0.04, 
+               arrow=arrow(length=unit(0.30,"cm"),type = "closed")) +
+  geom_text(x=2.375, y=data2$value[2]+0.07, label="-91%",size=3) +
+  
+  geom_segment(x=3.1, xend=3.1, y=data2$value[3]+0.01, yend=data2$value[3]+0.04) +
+  geom_segment(x=3.1, xend=3.65, y=data2$value[3]+0.04, yend=data2$value[3]+0.04) +
+  geom_segment(x=3.65, xend=3.65, y=data2$value[3]+0.04, yend=data2$value[4]+0.04, 
+               arrow=arrow(length=unit(0.30,"cm"),type = "closed")) +
+  geom_text(x=3.375, y=data2$value[3]+0.07, label="-87%",size=3)
+
+grid.arrange(plot1, plot2, ncol=2)
+```
+
+The average full marginal damages for the gasoline Ford Focus are 1.86 cents per mile. When we remove damages from CO<sub>2</sub> and only account for local damages, only 0.53 cents per mile remain, which is a reduction of 71%. With 0.43 cents per mile, most of these local damages stay within the state of origin. Only 19% are exported to other states. The damages which stay within the county of origin are 0.23 cents per mile, which is about half the damages which stay within the state of origin. The total share of native county damages in full damages is $0.23/1.86=12\%$
+
+For electric vehicles, the situation is different. With 1.7 cents per mile, most of the full damages of 2.59 cents per mile are damages from local pollutants. The export percentage of 91% is way higher on the state level compared to gasoline vehicles. This confirms the impression we had from the two pictures above. When moving from native state to native county damages, another 87% of the damages are exported. Only 0.02 cents per mile, or $0.02/2.59=0.008\%$ of the full damages, stay within the county of origin. This means that the *degree of pollution export is three orders of magnitude higher for electric vehicles* than for gasoline cars.
+
+Which implications does the different degree of pollution export between gasoline and electric vehicles have for policy making?
+When setting policy, it is not clear whether local governments care about full environmental damages or only native damages, which occur within their state or county. In fact, the U.S. National Ambient Air Quality Standards [(NAAQS)](https://www.epa.gov/criteria-air-pollutants/naaqs-table) require local governments to adhere to concentration levels for different pollutants within certain areas. For example, the concentration of SO<sub>2</sub> must not exceed 0.5 ppm (parts per million) more than once a year with a three hour averaging time. These regulations might incentivize local governments to prefer a technology which exports pollution to other regions, even if the resulting damages are higher in total.
+
+To find out whether this is the case for electric vehicles, let's first compare the second-best purchase subsidy for full damages, which we calculated in the last exercise, with the one for native damages on the state level. As you remember from Exercise 4, we calculated the second-best purchase subsidy by multiplying the environmental benefits with the assumed vehicle lifetime mileage of 150,000 miles. So, as a first step, we have to compute full environmental benefits and environmental benefits using native state damages.
+
+**Task:** Use the command `mutate()` from the `dplyr` package to create a column `envbenefits_full` from the full marginal damages and a column `envbenefits_state_local` from the native state damages for gasoline and electric vehicles. Save the result in the same data set `MD`.
+
+```{r "5__4"}
+# MD <- mutate(MD, envbenefits_full = ... - MD_el_full, ... = MD_gas_state_local - ...)
+```
+
+Now, just like in Exercise 4, we can calculate the second-best purchase subsidies for both cases.
+
+**Task:** Use the command `mutate()` from the `dplyr` package to add two columns `subsidy_full` and `subsidy_state_local` to the data frame `MD`, which contain the columns `envbenefits_full` and `envbenefits_state_local` each multiplied with 150,000 and divided by 100 to obtain the result in dollars.
+
+```{r "5__5"}
+# MD <- mutate(MD, subsidy_full = envbenefits_full*150000/100, 
+#                  ... = ... * ... / ...)
+```
+
+To visualize the results, we once again use two choropleths. The first one is the same as in Exercise 4, depicting the second-best purchase subsidy by state when considering full damages, the second one only considers native state damages.
+
+**Task:** Just press *check*.
+
+```{r "5__6",fig.width=14, fig.height=6}
+fig1 <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy_full = weighted.mean(subsidy_full, vmt)) %>%
+  transmute(region=tolower(state), value=avg_subsidy_full) %>%
+  state_choropleth(title="Second-Best Purchase Subsidy for Electric Vehicles by State, Full Damages", legend="Subsidy in $", num_colors=0)
+fig2 <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy_state_local = weighted.mean(subsidy_state_local, vmt)) %>%
+  transmute(region=tolower(state), value=avg_subsidy_state_local) %>%
+  state_choropleth(title="Second-Best Purchase Subsidy for Electric Vehicles by State, Native Damages", legend="Subsidy in $", num_colors=0)
+fig1
+fig2
+```
+
+The second-best electric vehicle purchase subsidy for native damages is positive in 33 states (including Washington D.C.), whereas the full damage subsidy is only positive in 11 states. The area with positive environmental benefits is no longer restricted to the west, but major parts of the eastern U.S. also have a positive purchase subsidy when only considering native damages. Let's compare the top and bottom five states regarding full and native subsidy.
+
+**Task:** Just press *check*.
+
+```{r "5__7",fig.width=14, fig.height=6}
+temp <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy_full=weighted.mean(subsidy_full, vmt))
+temp %>%
+  top_n(5, avg_subsidy_full) %>%
+  arrange(desc(avg_subsidy_full))
+temp %>%
+  top_n(-5, avg_subsidy_full) %>%
+  arrange(avg_subsidy_full)
+temp <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy_native=weighted.mean(subsidy_state_local, vmt))
+temp %>%
+  top_n(5, avg_subsidy_native) %>%
+  arrange(desc(avg_subsidy_native))
+temp %>%
+  top_n(-5, avg_subsidy_native) %>%
+  arrange(avg_subsidy_native)
+```
+
+You already know the first two tables from Exercise 4. The second-best full damage electric vehicle purchase subsidy ranges from 865 to 2785 dollars at the top end. When considering only native damages, the subsidy in California decreases from 2785 to 1547 dollars. The other four states in the native damage subsidy top five are different from those when we considered full damages, with the lowest subsidy being 595 dollars. If we look at the bottom end of the distribution, the two tables differ considerably. While we had large negative subsidies between -4964 and -3992 dollars for full damages, they range from -431 to -174 when only considering native damages, which is an order of magnitude smaller.
+
+To test whether local governments in the U.S. rather consider full or native damages when setting policy, Holland et al. analyzed the different state-level policies that where in place on July 28th, 2014. They derived four measures: 
+
+- the actual purchase subsidy for electric vehicles
+- the total number of policies set for electric vehicles
+- the number of policies that were considered incentives
+- the number of incentives that were considered significant by Holland et al.
+
+The information on the different policies was taken from the [U.S. Department of Energy](https://www.afdc.energy.gov/laws). Load in the data set `policies.Rds` to see which values Holland et al. give for the four measures for each state.
+
+**Task:** Just press *check*.
+
+```{r "5__8"}
+policies <- readRDS("./Data/policies.Rds")
+head(policies)
+```
+
+For example, additionally to the federal subsidy of 7,500 dollars, California subsidizes an electric vehicle purchase with 2,500 dollars. In total, there are 42 policies regarding electric vehicles in California, 21 of which are incentives. Out of these 21 incentives, 9 are considered significant by Holland et al.
+
+Let's augment this data set with the average values for full damage and native damage subsidies for the Ford Focus Electric in each state.
+
+**Task:** Just press *check*.
+
+```{r "5__9"}
+subsidy_full <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy_full=weighted.mean(subsidy_full, vmt))
+subsidy_native <- MD %>%
+  filter(model_e == "2014 Ford Focus Electric") %>%
+  group_by(state) %>%
+  summarize(avg_subsidy_native=weighted.mean(subsidy_state_local, vmt))
+
+policies <- merge(policies, subsidy_full, by="state")
+policies <- merge(policies, subsidy_native, by="state")
+```
+
+Now we can calculate the correlations between the four different measures of policy making and the full damage and native damage subsidies. The following code chunk calculates these eight correlations and arranges them in a data frame. Let's see what we can find out.
+
+**Task:** Just press *check*.
+
+```{r "5__10"}
+correlations <- data.frame(description=c("Cor with full damage subsidy","Cor with native damage subsidy"), 
+                           actual_subsidy=c(cor(policies[,6], policies[,2]),
+                                            cor(policies[,7], policies[,2])),
+                           all_policies=c(cor(policies[,6],policies[,3]),
+                                          cor(policies[,7],policies[,3])),
+                           all_incentives=c(cor(policies[,6], policies[,4]),
+                                            cor(policies[,7], policies[,4])),
+                           significant_incentives=c(cor(policies[,6],policies[,5]),
+                                                    cor(policies[,7],policies[,5])))
+correlations
+```
+
+
+The first row of the table shows the correlations of the four different policy measures with the full damage subsidy. The correlations lie between 0.3 for the actual purchase subsidy and 0.5 for the total number of policies. In the second row, we can see the correlations of the four policy measures with the native damage subsidy. For each measure, these correlations are higher than the ones with full damage subsidies and range from 0.52 for the actual subsidy to 0.79 for the total number of incentives. This gives at least some empirical evidence that the local governments might indeed consider native damages rather than full damages when setting policy. Therefore, electric vehicle policy should rather be set at the federal level.
+
+In the next exercise, we perform a sensitivity analysis to explore how different assumptions we made throughout the analysis influence our results.
+
+
+## Exercise 6 -- Sensitivity Analysis
+
+
+During our analysis in the previous exercises, we made several assumptions to our model. For example:
+
+- We used an estimate for the Social Cost of Carbon (SCC).
+- We performed a temperature adjustment for electric vehicle range using specific parameters.
+- We assumed electric vehicle charging profiles.
+- For gasoline vehicles, we differentiated between city and highway fuel consumption rates.
+- For the AP2 model, parameters like the value of a statistical life (VSL) or the dose-response function for PM<sub>2.5</sub> were used.
+
+We always tried to justify the parameter choices and gave references. However, in this exercise, we explore how altering these assumptions and using different parameters influences our results. Some of the parameters like the SCC were part of our calculations, so it suffices to run the same code we used in the respective exercise with a different value for the parameter. For other parameters, like those concerning the AP2 model, we have to rely on the intermediate results provided by Holland et al., as we do not have an implementation of the AP2 model available.
+
+The first quantity we want to alternate is the social cost of carbon (SCC). For our calculations, we used the value given by the U.S. Environmental Protection Agency (EPA), which is 41 in 2014 dollars. A [survey](https://www.edf.org/sites/default/files/expertconsensusreport.pdf) conducted by the Institute of Policy Integrity at New York University School of Law found that 69% of 365 selected experts think that the true social costs of carbon are higher than the value currently used by the U.S. government. Only 8% believe the value should be lower. For example, the oil and gas company ExxonMobil uses a social cost of carbon of [80 dollars](https://cdn.exxonmobil.com/~/media/global/files/energy-and-environment/2016-cdp-response.pdf) for internal calculations. We therefore compare our baseline of 41 dollars to a slightly lower value of 31 dollars, a slightly higher value of 51 dollars and a much higher value of 80 dollars.
+
+I ran the model calculations in the same way as we did in Exercise 2, but with different SCC values. The results are part of the following data set and can be found in the columns labelled with `_scc31`, `_scc51` and `_scc80`. The baseline case are the columns `MD_el`, `MD_gas` and `envbenefits`, which have been analyzed in Exercise 3. Have a quick look at the data set.
+
+**Task:** Just press *check*.
+
+```{r "6"}
+MD <- readRDS("./Data/MD_6.Rds")
+head(MD)
+```
+
+For every case in this data set, we want to have a look at the mean, minimum and maximum damages for electric and gasoline vehicles and the environmental benefits. As these calculations are quite lengthy, I already calculated the results and arranged them in a data frame. I used the package `htmlTable` to display all of the results in a well-structured fashion. You can see the resulting table below. If you are interested in the code to reproduce the table, have a look at the info box.
+
+info("Using HtmlTable") # Run this line (Strg-Enter) to show info
+
+<table class="gmisc_table" style="border-collapse: collapse; margin-top: 1em; margin-bottom: 1em;">
+<thead>
+<tr><td colspan="12" style="text-align: left;">
+Damages of Gasoline and Electric Vehicles and Environmental Benefits for Different Model Parameters in Cents per Mile</td></tr>
+<tr>
+<th style="border-top: 2px solid grey;"></th>
+<th colspan="3" style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: center;">Electric Vehicle</th><th style="border-top: 2px solid grey;; border-bottom: hidden;">&nbsp;</th>
+<th colspan="3" style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: center;">Gasoline Vehicle</th><th style="border-top: 2px solid grey;; border-bottom: hidden;">&nbsp;</th>
+<th colspan="3" style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: center;">Environmental Benefits</th>
+</tr>
+<tr>
+<th style="border-bottom: 1px solid grey;"> </th>
+<th style="border-bottom: 1px solid grey; text-align: center;">mean</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">min</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">max</th>
+<th style="border-bottom: 1px solid grey;" colspan="1">&nbsp;</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">mean</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">min</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">max</th>
+<th style="border-bottom: 1px solid grey;" colspan="1">&nbsp;</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">mean</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">min</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">max</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Baseline</td>
+<td style="text-align: center;">2.59</td>
+<td style="text-align: center;">0.67</td>
+<td style="text-align: center;">4.72</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">1.86</td>
+<td style="text-align: center;">1.03</td>
+<td style="text-align: center;">4.32</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.73</td>
+<td style="text-align: center;">-3.63</td>
+<td style="text-align: center;">3.16</td>
+</tr>
+<tr>
+<td style="text-align: left;">SCC = 31$</td>
+<td style="text-align: center;">2.37</td>
+<td style="text-align: center;">0.55</td>
+<td style="text-align: center;">4.42</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">1.53</td>
+<td style="text-align: center;">0.78</td>
+<td style="text-align: center;">3.98</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.84</td>
+<td style="text-align: center;">-3.58</td>
+<td style="text-align: center;">2.95</td>
+</tr>
+<tr>
+<td style="text-align: left;">SCC = 51$</td>
+<td style="text-align: center;">2.8</td>
+<td style="text-align: center;">0.8</td>
+<td style="text-align: center;">5.02</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">2.18</td>
+<td style="text-align: center;">1.28</td>
+<td style="text-align: center;">4.67</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.62</td>
+<td style="text-align: center;">-3.68</td>
+<td style="text-align: center;">3.38</td>
+</tr>
+<tr>
+<td style="text-align: left;">SCC = 80$</td>
+<td style="text-align: center;">3.43</td>
+<td style="text-align: center;">1.17</td>
+<td style="text-align: center;">5.89</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">3.12</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">5.66</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.31</td>
+<td style="text-align: center;">-3.82</td>
+<td style="text-align: center;">4</td>
+</tr>
+<tr>
+<td style="text-align: left;">No temperature adjustment</td>
+<td style="text-align: center;">2.43</td>
+<td style="text-align: center;">0.67</td>
+<td style="text-align: center;">3.9</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">1.86</td>
+<td style="text-align: center;">1.03</td>
+<td style="text-align: center;">4.32</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.57</td>
+<td style="text-align: center;">-2.84</td>
+<td style="text-align: center;">3.18</td>
+</tr>
+<tr>
+<td style="text-align: left;">Flat charging profile</td>
+<td style="text-align: center;">2.41</td>
+<td style="text-align: center;">0.74</td>
+<td style="text-align: center;">3.88</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">1.86</td>
+<td style="text-align: center;">1.03</td>
+<td style="text-align: center;">4.32</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.55</td>
+<td style="text-align: center;">-2.79</td>
+<td style="text-align: center;">3.1</td>
+</tr>
+<tr>
+<td style="text-align: left;">Average mpg</td>
+<td style="text-align: center;">2.59</td>
+<td style="text-align: center;">0.67</td>
+<td style="text-align: center;">4.72</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">1.74</td>
+<td style="text-align: center;">1.23</td>
+<td style="text-align: center;">4.11</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.85</td>
+<td style="text-align: center;">-3.42</td>
+<td style="text-align: center;">2.89</td>
+</tr>
+<tr>
+<td style="text-align: left;">2.7 Million dollar VSL</td>
+<td style="text-align: center;">1.61</td>
+<td style="text-align: center;">0.71</td>
+<td style="text-align: center;">2.64</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">1.54</td>
+<td style="text-align: center;">1.02</td>
+<td style="text-align: center;">2.55</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-0.06</td>
+<td style="text-align: center;">-1.59</td>
+<td style="text-align: center;">1.63</td>
+</tr>
+<tr>
+<td style="text-align: left;">Higher PM dose-response</td>
+<td style="text-align: center;">3.74</td>
+<td style="text-align: center;">1.25</td>
+<td style="text-align: center;">6.89</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">2.16</td>
+<td style="text-align: center;">1.04</td>
+<td style="text-align: center;">5.96</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">-1.58</td>
+<td style="text-align: center;">-5.76</td>
+<td style="text-align: center;">3.91</td>
+</tr>
+<tr>
+<td style="border-bottom: 2px solid grey; text-align: left;">Future grid and gasoline vehicle</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">0.67</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">0.37</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">1.39</td>
+<td style="border-bottom: 2px solid grey;" colspan="1">&nbsp;</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">1.23</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">0.74</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">3.53</td>
+<td style="border-bottom: 2px solid grey;" colspan="1">&nbsp;</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">0.56</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">-0.57</td>
+<td style="border-bottom: 2px solid grey; text-align: center;">2.73</td>
+</tr>
+</tbody>
+<tfoot><tr><td colspan="12">
+Note: Values are for the Ford Focus 2014 and weighted over counties using VMT</td></tr></tfoot>
+</table>
+
+The result corresponds to Table 7 in Holland et al. Let's first have a look at the cases for different SCC values.
+By lowering the social cost of carbon from the baseline case of 41 dollars to 31 dollars, the damage ranges for electric and gasoline vehicles are shifted to the left. As we know from Exercise 5, the damage share originating from CO<sub>2</sub> is higher for gasoline vehicles than for electric cars. This leads to a decrease in mean environmental benefits from -0.73 cents per mile for the baseline case (SCC of 41 dollars) to -0.84 cents per mile for a SCC of 31 dollars.
+
+Similar to the SCC31 case, a social cost of carbon of 51 dollars shifts the damage ranges to the right. As gasoline damages are affected more, the mean environmental benefits increase from -0.73 to -0.62 cents per mile. When almost doubling the baseline SCC to 80 dollars, the mean environmental benefits reach -0.32, which is still negative but, in absolute values, less than half of the negative baseline environmental benefits. The modulation of the SCC parameter does not fundamentally overturn our results, but as it affects gasoline and electric vehicle damages differently, it can change the scale of the results.
+
+The following code chunk visualizes the environmental benefits of a Ford Focus Electric for the SCC values given in the table as well as an even higher value of 120 dollars. According to Cai, Judd and Lontzek (2013), SCC values are increasing and a value of 120 dollars could be reached in the future.
+
+**Task:** Just press *check*.
+
+```{r "6__3",fig.width=9, fig.height=6}
+data <- readRDS("./Data/envbenefits_by_scc.Rds")
+
+ggplot(data, aes(x=scc, y=envben)) +
+  ggtitle("Mean Environmental Benefits of a Ford Focus Electric by SCC values") +
+  xlab("Social Cost of Carbon in dollars") +
+  ylab("Mean Environmental Benefits in cents/mile") +
+  geom_point(stat="identity") +
+  geom_smooth(method='lm', se=FALSE) +
+  geom_vline(xintercept=106, linetype="dotted", color="blue") +
+  scale_x_continuous(breaks=c(0, 50, 75, 100, 106))
+```
+
+When plotting the environmental benefits of the Ford Focus Electric for different SCC values, we can see that environmental benefits increase linearly with SCC. Therefore, I also added a linear regression line in blue.
+
+#! addon__quiz__SCC
+
+From looking at the graph, we can guess that the break-even point between U.S. average electric and gasoline vehicle damages is at a SCC of about 106 dollars.
+
+I will now explain the remaining model alternations that were made and examine their impact on the results. The following two model alternations only concern electric vehicle damages.
+
+In Exercise 2.1, we performed a temperature adjustment to electric vehicle energy consumption rates. When leaving away this part of the model and assuming the standard rates at a temperature of 68 degrees Fahrenheit (20 degrees Celsius) for every day of the year in all counties, average electric vehicle damages decrease to 2.43 cents per mile as compared to 2.59 cents per mile in the baseline case. The omission of the temperature caused increases in energy consumption therefore leads to slightly higher environmental benefits of -0.57 cents per mile. The model does not react highly sensitive to this change.
+
+Our econometric analysis in Exercise 2.2 showed that power plants react differently to an increase in energy consumption depending on the load level and therefore on the time of day. Therefore, in Exercise 2.4, we assumed a charging profile called the EPRI charging profile, in which electric vehicles were mostly charged during the night and in the early morning. To assess the influence of this assumption, the table contains the results for a flat charging profile, in which electric vehicles are charged for the same amount during every hour of the day. With 2.41 cents per mile, the resulting electric vehicle damages are slightly lower than in the baseline case. This is due to the fact that the EPRI charging profile assumed the electric vehicles to be charged during times when mostly base load power plants, which have tendentially higher emissions, are running. The resulting slight increase in environmental benefits to -0.55 cents per mile shows that the model is not highly sensitive to this assumption, too.
+
+The next change only affects gasoline vehicle damages.
+
+When Holland et al. calculate gasoline vehicle damages, they differentiate between urban and non-urban counties. For urban counties, the city mileage of the specific gasoline car is used and for non-urban counties the highway mileage. In the table, you can see the resulting gasoline vehicle damages when an average fuel consumption rate is assumed for both urban and non-urban counties instead. The range of environmental damages of gasoline cars narrows a bit, with a slightly smaller mean damage value of 1.74 cents per mile compared to 1.86 cents per mile mean baseline damages. The reason for this is that fuel consumption and therefore emission rates are higher in city traffic, where the resulting damages are also higher because of a larger population density. The mean environmental benefits change from -0.73 for the baseline case to -0.85, which is slightly lower. The model does not react highly sensitive to this change, either.
+
+The following two results are based on a parameter change to the AP2 model described in Exercise 2.3 and therefore influence both electric and gasoline vehicle damages.
+
+The VSL (value of a statistical life) parameter is used in the AP2 model to convert changes in adult mortality into monetary damages. Altering it therefore changes the damages caused by local pollutants. For the baseline results, a value of 8.1 Million dollars has been used. Assuming a lower VSL of 2.7 Million dollars primarily affects the upper tails of the distributions of gasoline and electric vehicle damages, reducing the maximum damage values from 4.72 to 2.64 cents per mile for electric and from 4.32 to 2.55 cents per mile for gasoline cars. The minimum damage values hardly change at all. The mean damages for electric vehicles decrease from 2.59 to 1.61 cents per mile. This was to be expected since most of the environmental damages come from the impact of local pollutants in densely populated areas. The VSL parameter directly influences the magnitude of this impact.
+As the share of local damages is higher for electric vehicles, a lower VSL value leads to higher environmental benefits of -0.06 cents per mile.
+
+The PM dose-response function is used in the AP2 model to evaluate the effect of increased air concentrations of PM<sub>2.5</sub> on adult mortality rates. Similar to the previous parameter, it therefore affects damages from local pollution. Roman et al. (2008) assume a higher adult mortality dose-response than the one used in the baseline model. Using the Roman et al. dose-response function leads to higher damages for both electric and gasoline vehicles. Like with the VSL parameter, electric vehicles are  more strongly affected, leading to lower environmental benefits of -1.58 cents per mile. 
+
+The parameters of the AP2 model are maybe the most crucial ones, as the impacts of local pollutants heavily contribute to our results. Still, the baseline results are not fundamentally overturned by changing the AP2 model parameters quite drastically.
+
+The last row of the table somewhat differs from the other model alternations. The idea is to evaluate, to some extent, how changes to the electric power generation and technological advance in gasoline vehicle engineering might influence the results in the future. The latter point is simply achieved by using the Toyota Prius instead of the Ford Focus as our gasoline example vehicle. This is done because the Toyota Prius has a significantly lower fuel consumption rate, which leads to lower gasoline vehicle damages and thereby models technological progress in this area. To model a possibly cleaner future electricity grid, Holland et al. scale the emission rates of all of the coal plants to a value in the range of what is achieved by modern combined cycle gas turbines. So, roughly spoken, all coal plants are replaced with modern gas-fired power plants in the same locations, which are dispatched identically to the coal plants they replace. This approach reduces both gasoline and electric vehicle damages, but electric vehicle damages to a much higher extent. Their mean damages decrease from 2.59 to 0.67 cents per mile, resulting, for the first time, in positive environmental benefits of 0.56 cents per mile. However, to put this into perspective, Holland et al. state that the resulting electric vehicle purchase subsidy of 840 dollars is still far from the actual federal subsidy of 7,500 dollars.
+
+All in all, our results seem to be robust to parameter changes and other model alternations. In the next exercise, we talk about several caveats to our analysis and different factors we did not take into account.
+
+
+## Exercise 7 -- Caveats
+
+
+During the course of our analysis, we made some explicit and implicit model assumptions. In the last exercise, we already performed a sensitivity analysis to assess the influence of different parameter choices on the results. Holland et al. state several possible issues with the analysis and how they might impact the results. In this exercise, I will explain these issues to you.
+
+The first issue has already been mentioned at the end of the last exercise, but it is an important point when analyzing environmental benefits of electric vehicles. Our results for electric vehicle damages heavily depend on the marginal emission rates of the power plants and therefore on the structure of the electricity grid. Our analysis is based on the electricity grid in the years 2010 - 2012. There have already been changes in the meantime and it can be expected that the electricity grid will further continue to change. As we do not have an implementation of the AP2 model available and therefore use intermediate results by Holland et al. during our analysis, it is unfortunately not possible to conduct the analysis with more up-to-date data. However, we used a rough approximation of a possible future electricity grid in the last exercise and found out that environmental benefits of electric vehicles might indeed become positive, but not to an extent that it would justify the current electric vehicle purchase subsidy of 7,500 dollars.
+
+As already suggested in the title of the problem set, the focus of our analysis was the environmental benefits from *driving* electric cars. We did not account for *upstream externalities* which occur, for example, for the production of the vehicle. To assess the magnitude of upstream costs, let's have a look at some data from Michalek et al. (2011), who analyzed the damages due to upstream externalities for gasoline and electric vehicles. You can find their results in the table below. If you are interested in how I generated the table using htmlTable, have a look at the info box.
+
+info("Using htmlTable") # Run this line (Strg-Enter) to show info
+
+<table class="gmisc_table" style="border-collapse: collapse; margin-top: 1em; margin-bottom: 1em;">
+<thead>
+<tr><td colspan="10" style="text-align: left;">
+Vehicle Damages Due To Upstream Externalities</td></tr>
+<tr>
+<th style="border-top: 2px solid grey;"></th>
+<th colspan="4" style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: center;">Gasoline Vehicle</th><th style="border-top: 2px solid grey;; border-bottom: hidden;">&nbsp;</th>
+<th colspan="4" style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: center;">Electric Vehicle</th>
+</tr>
+<tr>
+<th style="border-bottom: 1px solid grey;"> </th>
+<th style="border-bottom: 1px solid grey; text-align: center;">GHG</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">Local</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">Other</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">Total</th>
+<th style="border-bottom: 1px solid grey;" colspan="1">&nbsp;</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">GHG</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">Local</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">Other</th>
+<th style="border-bottom: 1px solid grey; text-align: center;">Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Vehicle Production</td>
+<td style="text-align: center;">316</td>
+<td style="text-align: center;">535</td>
+<td style="text-align: center;">78</td>
+<td style="text-align: center;">929</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">291</td>
+<td style="text-align: center;">566</td>
+<td style="text-align: center;">69</td>
+<td style="text-align: center;">926</td>
+</tr>
+<tr>
+<td style="text-align: left;">Battery Production</td>
+<td style="text-align: center;">12</td>
+<td style="text-align: center;">17</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">31</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">532</td>
+<td style="text-align: center;">1272</td>
+<td style="text-align: center;">103</td>
+<td style="text-align: center;">1907</td>
+</tr>
+<tr>
+<td style="text-align: left;">Upstream Fuel Production (gasoline/electricity)</td>
+<td style="text-align: center;">290</td>
+<td style="text-align: center;">289</td>
+<td style="text-align: center;">18</td>
+<td style="text-align: center;">597</td>
+<td style="" colspan="1">&nbsp;</td>
+<td style="text-align: center;">63</td>
+<td style="text-align: center;">47</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">111</td>
+</tr>
+<tr>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: left;">Total</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">618</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">841</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">98</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">1557</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900;" colspan="1">&nbsp;</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">886</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">1885</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">174</td>
+<td style="border-bottom: 2px solid grey; border-top: 1px solid #BEBEBE; font-weight: 900; text-align: center;">2944</td>
+</tr>
+</tbody>
+<tfoot><tr><td colspan="10">
+Source: Michalek et al. (2011); in 2010 dollars</td></tr></tfoot>
+</table>
+
+The three main components of upstream damages are due to vehicle production, battery production and the damages which arise upstream for the production of gasoline or electricity (for example emissions caused by the transportation of coal to the power station). The damages are divided into damages from greenhouse gases (GHG), local damages from the pollutants SO<sub>2</sub>, NO<sub>x</sub>, PM<sub>2.5</sub> and VOCs and other damages, which are from local pollutants such as CO and PM<sub>10</sub>. In total, electric vehicle upstream damages are 2944 dollars, compared to 1557 dollars for gasoline vehicles. This results in a difference of $2944-1557=1387$ in 2010 dollars, which is $1387*1.08\approx 1500$ in 2014 dollars when using the [U.S. consumer price index](https://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/) for conversion. So the upstream costs of electric cars are about 1500 dollars higher.
+
+The third caveat to our analysis is the fact that we calculate electric vehicle damages on the basis of marginal emissions from an increase in electricity use. The [U.S. Bureau of Transportation Statistics](https://www.bts.gov/content/number-us-aircraft-vehicles-vessels-and-other-conveyances) quantifies the total number of light duty vehicles to about 250 million vehicles. If we suppose a 5% adoption rate, this leads to an electric vehicle fleet of $250,000,000*0.05=12,500,000$ vehicles. Further assuming that they are each driven 15,000 miles per year (like in Exercise 4.2) with an energy consumption rate of 0.32 kilowatt hours per mile, results in a total energy use of $12,500,000*15,000*0.32=60*10^{9}$ kilowatt hours, which are 60 terawatt hours. Statista gives a [total U.S. electricity use](https://www.statista.com/statistics/201794/us-electricity-consumption-since-1975/) of 3,833 terawatt hours for 2012, so the share for charging the supposed 5% electric vehicle fleet is $60/3833\approx1.6\%$ of the current total consumption. In this context, it seems reasonable that we use marginal emission rates for the first period of electric vehicle adoption.
+However, this approach may no longer be suitable when electric vehicles make up for a substantial amount of the vehicle fleet. In this case, average emission rates may be more suitable than marginal emissions. Also, it is possible that the power plant dispatch changes due to large scale electric vehicle charging, thereby influencing marginal and average emission rates. To analyse these effects is, however, beyond the scope of our analysis.
+
+The fourth issue is that our analysis was conducted without considering possible interference with existing forms of environmental regulation. Holland et al. analyze three of these:
+
+- Corporate Average Fuel Economy (CAFE) standards
+- Cap-and-Trade programs
+- Renewable Portfolio standards (RPS)
+
+CAFE standards limit the average fuel consumption of a manufacturer's vehicle fleet, weighted by sales. For electric vehicles, an artificial fuel consumption value is calculated to be able to compare them with gasoline cars. These values are much lower than the values for gasoline cars. If we assume that the CAFE standards are binding, manufacturers can meet lower standards with the rest of their fleet if they sell electric vehicles. Therefore,  Holland et al. therefore define *CAFE-induced environmental costs* as the increase in environmental damages from the rest of the fleet when an electric vehicle is sold and estimate a value of 1,555 dollars per vehicle for the Ford Focus.
+
+Cap-and-trade programs limit the emission of a specific pollutant from electricity generation by emitting allowances, which can be traded. Examples for such programs are the Regional Greenhouse Gas Initiative, which caps emissions of CO<sub>2</sub> in the Northeast of the U.S., and the EPA Acid Rain Program, which caps emissions from SO<sub>2</sub> and NO<sub>x</sub>. There is evidence that these emission caps were not binding during the years of our analysis, see for example Schmalensee and Stavins (2017). Nevertheless, Holland et al. tried to approximate the effect of binding caps.
+
+#! addon__quiz__CAFE Standards
+
+When approximating the effect of binding emissions caps, Holland et al. found a decrease in electric vehicle damages from 2.59 to 0.94 cents per mile on average. It is clear that such programs have a positive effect on the environmental benefits of electric vehicles.
+
+The effect of renewable portfolio standards on the environmental benefits of electric vehicles is also positive. RPS programs establish a fixed share of electricity generation from sources with low emissions such as solar or wind power. Holland et al. state that if we suppose this fixed share to be $R$, then an increase in electricity usage due to charging electric vehicles will result in an increase in low-emission power generation of the respective share, so electric vehicle damages can be scaled by $1-R$. However, this is only true if the charging times of the electric vehicles correspond to the time of renewable power generation and the power can be transferred to the charging location.
+
+The following three considerations by Holland et al. concern benefits of electric vehicles which are not measured in terms of environmental damages.
+
+- Using electric instead of gasoline vehicles decreases the dependency on oil imports. This might have positive economical effects due to a lower sensitivity to oil price shocks as well as geopolitical benefits. Michalek et al. (2011) estimate that these benefits sum up to approximately 1,400 dollars per electric vehicle.
+
+- Subsidizing electric vehicle purchases may lead to technological progress and innovation spillovers to other technologies. This argument is very difficult to assess and I did not find any quantification of the possible effect.
+
+- Subsidizing electric vehicle purchases may help to develop the electric vehicle charging infrastructure and lower production costs. This might come in handy in the future, when electric vehicles might have positive environmental benefits due to a cleaner electricity grid. While this might be true, the positive future effects are at least lowered by the effects of current negative environmental benefits of electric vehicles.
+
+Some of the additional effects more or less cancel each other out, like for example the upstream costs of 1,500 dollars and the positive effects of a decreased oil dependency of 1,400 dollars. For others, like innovation spillovers, the effects are unclear, although such arguments are regularly used by policy makers.
+
+
+## Exercise 8 -- Conclusion
+
+
+During the course of this problem set, we compared environmental damages from gasoline and electric vehicles to figure out appropriate policy setting.
+
+In Exercise 1, we saw that the damages from gasoline vehicles heavily depend on the population density in the places where the cars are driven. In Exercise 2, we derived electric vehicle damages through a number of different steps. First, we adjusted the energy consumption of electric vehicles using temperature profiles of U.S. counties. Afterwards, we performed an econometric analysis to estimate how an increase in electricity use in a certain area influences the emissions of electric power plants. We then explained how increased emissions can be mapped into monetary damages using an integrated assessment model called the AP2 model. We combined these results using an assumed charging profile and found that electric vehicle damages mostly depend on the fuel mix of the electricity generation in the area in which the cars are charged. A sensitivity analysis in Exercise 6 showed that the results are not highly sensitive to the assumptions we made for the temperature adjustment, the AP2 model or the charging profile. 
+
+When comparing gasoline and electric vehicle damages in Exercise 3, we found that a typical electric vehicle has negative environmental benefits of -0.73 cents per mile on U.S. average compared to a similar gasoline car. The major part of the environmental damages is caused by the impact of the local pollutants SO<sub>2</sub>, NO<sub>x</sub>, PM<sub>2.5</sub> and VOCs. When only considering global damages from CO<sub>2</sub> for the comparison between electric and gasoline vehicles, the benefits of electric vehicles are overestimated. The environmental benefits differ considerably between different places. They are especially low in areas with a low population density and a high percentage of coal-fired power generation, like the Upper Midwest. However, in regions with high population densities and a relatively clean electricity grid, like for example in California, electric vehicles can have considerable environmental benefits.
+
+Due to the spatial heterogeneity of the environmental benefits, our first Proposition in Exercise 4 states that the first-best policy is Pigouvian taxes on gasoline and electric miles, differentiated by location. The level of this tax should be equal to the full damages caused by driving a gasoline or electric vehicle for one mile in a specific location. In reality, taxes on miles do not exist in the U.S. Possible alternatives are taxes on fuel consumption or, as part of a more holistic approach, Pigouvian taxes on electricity production or consumption in general. As policies in the form of purchase subsidies are already in place in the U.S., we calculated the second-best purchase subsidy for electric vehicles, which, according to our second Proposition, is equal to the difference in lifetime damages between a gasoline and an electric car. On U.S. average, the electric vehicle purchase subsidy is actually a tax and should be -1,095 dollars, ranging from -4,964 dollars in North Dakota to 2,785 dollars in California. In any location, our suggested purchase subsidies are far from the actual current federal subsidy of 7,500 dollars.
+
+In Exercise 5, we saw that local pollution from electricity use is exported to other counties or states to a much higher degree than local pollution from gasoline cars. We found empirical evidence that local governments might only care about native damages and ignore the share of pollution which is exported to other places when setting policy. We concluded that electric vehicle policies should be differentiated by location but set at the federal level to account for pollution export.
+
+Our analysis focused on the environmental impact from driving electric or gasoline vehicles. In Exercise 7, we discussed some possible factors which were not included in our analysis. For example, other studies have estimated the benefits from a reduced dependency on oil to 1,400 dollars and the environmental benefits of electric vehicles, which occur upstream, to -1,500 dollars. Additional damages of 1,555 dollars occur due to the interaction of electric vehicle purchase subsidies with other policies such as U.S. CAFE standards. Other factors like innovation spillovers, which are often mentioned in discussions, are difficult to assess. Considering these additional factors could still not rectify the current federal subsidy of 7,500 dollars.
+
+I hope you enjoyed this problem set and gained some useful insights into electric vehicle policy making and the economics behind it.
+
+If you want to see the awards you earned during the problem set, you can run the following code chunk. In total, there were 9 awards to be earned.
+
+```{r "8"}
+awards()
+```
+
+
+## Exercise References
+
+
+### Bibliography
+
+
+- Ben-Akiva, M.E. and Lerman, S.R. (1979). "Disaggregate Travel and Mobility-Choice Models and Measures of Accessibility" Behavioural Travel Modelling, edited by Hensher, D.A. and Storper, P.R., Croom Helm, London, pp. 654-79
+
+- Cai, Y., Judd, K.L., Lontzek, T.S. (2013). "The Social Cost of Stochastic and Irreversible Climate Change" NBER Working Paper No. 18704, https://www.nber.org/papers/w18704
+
+- Fowlie, M. and Muller, N.Z. (2013). "Market-Based Emissions Regulation When Damages Vary Across Sources: What are the Gains from Differentiation?" NBER Working Paper No. 18801, http://www.nber.org/papers/w18801
+
+- Greene, W.H. (2012). "Econometric Analysis" Pearson Education, Harlow, Seventh Edition
+
+- Holland, S.P., Mansur, E.T., Muller, N.Z. and Yates, A.J. (2016). "Are There Environmental Benefits from Driving Electric Vehicles? The Importance of Local Factors" American Economic Review, 106 (12): pp. 3700-3729.
+
+- Meyer, N., Whittal, I., Christenson, M., Loiselle-Lapointe, A. (2012). "The Impact of Driving Cycle and Climate on Electrical Consumption & Range of Fully Electric Passenger Vehicles" EVS26 - International Battery, Hybrid and Fuel Cell Electric Vehicle Symposium
+
+- Michalek, J.J., Chester, M., Jaramillo, P., Samaras, C., Shiau, C-S.N., and Lave, L.B. (2011). "Valuation of plug-in vehicle life-cycle air emissions and oil displacement benefits" PNAS, 108 (40): pp. 16554-8
+
+- Muller, N.Z. (2011). "Linking Policy to Statistical Uncertainty in Air Pollution Damages" The B.E. Journal of Economic Analysis & Policy, De Gruyter, 11 (1): pp. 1-29
+
+- Muller, N.Z. and Mendelsohn, R. (2007). "Measuring the damages of air pollution in the United States" Journal of Environmental Economics and Management, 54 (1): pp. 1-14
+
+- Muller, N.Z., and Mendelsohn, R. (2009). "Efficient Pollution Regulation: Getting the Prices Right" American Economic Review, 99 (5): pp. 1714-39.
+
+- Muller, N.Z., Mendelsohn, R., Nordhaus, W. (2011). "Environmental Accounting for Pollution in the United States Economy" American Economic Review, 101 (5): pp. 1649-75
+
+- Paradis, E. (2005). "R for Beginners" CRAN eBook, https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
+
+- Pope, C.A., Burnett, R.T., Thun, M.J., Calle, E.E., Krewski, D., Ito, K., Thurston, G. (2002). "Lung Cancer, Cardiopulmonary Mortality, and Long-Term Exposure to Fine Particulate Air Pollution" JAMA, 287: pp. 1132-1141
+
+- Roman, H.A., Walker, K.D., Walsh, T.L., Conner, L., Richmond, H.M., Hubbell, B.J. and Kinney, P.L. (2008). "Expert Judgment Assessment of the Mortality Impact of Changes in Ambient Fine Particulate Matter in the U.S." Environmental Science & Technology, 42 (7), pp. 2268-2274
+
+- Schmalensee, R., and Stavins, R.N. (2017). "Lessons Learned from Three Decades of Experience with Cap and Trade" Review of Environmental Economics and Policy, 11 (1): pp. 59-79
+
+- Small, K.A. and Rosen, H.S. (1981). "Applied Welfare Economics with Discrete Choice Models" Econometrica, 49 (1): pp. 105-30
+
+- Train, K.E. (2009). "Discrete Choice Methods with Simulation" Cambridge University Press, Cambridge, Second Edition
+
+- Williams, H.C.W.L. (1977). "On the Formation of Travel Demand Models and Economic Evaluation Measures of User Benefit" Environment and Planning A: Economy and Space, 9 (3), pp. 285-344
+
+
+### R Packages
+
+
+- Auguie, B., Antonov, A. (2017): gridextra. "Miscellaneous Functions for "Grid" Graphics", R package version 2.3, http://CRAN.R-project.org/package=gridExtra
+
+- Ellis, P. (2016): dualplot. "Base graphics function for drawing dual axis line plots", https://gist.github.com/ellisp/4002241def4e2b360189e58c3f461b4a
+
+- Gaure, S. (2018): lfe. "Linear group fixed effects", R package version 2.8-2, https://CRAN.R-project.org/package=lfe
+
+- Gordon, M., Gragg, S., Konings, P. (2018): htmlTable. "Advanced Tables for Markdown/HTML", R package version 1.12, http://CRAN.R-project.org/package=htmlTable
+
+- Hlavac, M. (2018): stargazer. "Well-Formatted Regression and Summary Statistics Tables", R package version 5.2.1, http://CRAN.R-project.org/package=stargazer
+
+- Kranz, S. (2015): RTutor. "Creating R problem sets with automatic assessment of student's solutions", R package version 2015.12.16, https://github.com/skranz/RTutor
+
+- Lamstein, A., Johnson, B. (2018): choroplethr. "Simplify the Creation of Choropleth Maps in R", R package version 3.6.3, http://CRAN.R-project.org/package=choroplethr
+
+- Ooms, J. (2018): magick. "Advanced Graphics and Image-Processing in R", R package version 2.0, https://CRAN.R-project.org/package=magick
+
+- R Development Core Team (2015): R. "A language and environment for statistical computing", R Foundation for Statistical Computing, Vienna, Austria, http://www.r-project.org
+
+- Stephenson, A., Ferro, C. (2018): evd. "Functions for Extreme Value Distributions", R package version 2.3-3, http://CRAN.R-project.org/package=evd
+
+- Wickham, G. (2007): reshape2. "Reshaping Data with the reshape Package", Journal of Statistical Software, 21 (12): pp. 1-20, R package version 1.4.3, https://CRAN.R-project.org/package=reshape2
+
+- Wickham, H. (2016): ggplot2. "Elegant Graphics for Data Analysis", Springer-Verlag, New York, R package version 3.0.0, http://CRAN.R-project.org/package=ggplot2
+
+- Wickham, H., Francois, R., Henry, L., Muller, K., (2018): dplyr. "A Grammar of Data Manipulation", R package version 0.7.7, http://CRAN.R-project.org/package=dplyr
+
+
+### Data Sources
+
+
+- Argonne National Laboratory, "The Greenhouse gases, Regulated Emissions, and Energy use in Transportation Model", https://greet.es.anl.gov/
+
+- Electric Power Research Institute, "Environmental Assessment of Plug-In Hybrid Electric Vehicles", https://www.energy.gov/sites/prod/files/oeprod/DocumentsandMedia/EPRI-NRDC_PHEV_GHG_report.pdf
+
+- Electric Reliability Council of Texas, "Hourly Load Data Archives", http://www.ercot.com/gridinfo/load/load_hist/
+
+- Exxon Mobil Corporation, "Climate Change 2016 Information Request", https://cdn.exxonmobil.com/~/media/global/files/energy-and-environment/2016-cdp-response.pdf
+
+- Holland, S.P., Mansur, E.T., Muller, N.Z. and Yates, A.J. (2016). "Replication Materials for: Are There Environmental Benefits from Driving Electric Vehicles? The Importance of Local Factors", https://www.aeaweb.org/articles?id=10.1257/aer.20150897
+
+- Institute of Policy Integrity, New York University School of Law, "Expert Consensus on the Economics of Climate Change", https://www.edf.org/sites/default/files/expertconsensusreport.pdf
+
+- North American Electric Reliability Corporation (NERC), "Key Players", https://www.nerc.com/AboutNERC/keyplayers/Pages/default.aspx
+
+- Office of Energy Efficiency & Renewable Energy, "Electric Vehicles: Tax Credits and Other Incentives", https://www.energy.gov/eere/electricvehicles/electric-vehicles-tax-credits-and-other-incentives
+
+- Statista, "U.S. average vehicle age", https://www.statista.com/statistics/738667/us-vehicles-projected-age/
+
+- Statista, "Total electricity end use in the U.S. from 1975 to 2017", https://www.statista.com/statistics/201794/us-electricity-consumption-since-1975/
+
+- U.S. Bureau of Transportation Statistics, "Number of U.S. Aircraft, Vehicles, Vessels, and Other Conveyances", https://www.bts.gov/content/number-us-aircraft-vehicles-vessels-and-other-conveyances
+
+- U.S. Census Bureau, "Centers of Population", https://www.census.gov/geo/reference/centersofpop.html)
+
+- U.S. Department of Energy, "Alternative Fuels Data Center: Federal and State Laws and Incentives", https://www.afdc.energy.gov/laws
+
+- U.S. Departement of Transportation, "Average Annual Miles per Driver by Age Group", https://www.fhwa.dot.gov/ohim/onh00/bar8.htm
+
+- U.S. Environmental Protection Agency, "Air Markets Program Data", https://ampd.epa.gov/ampd/ 
+
+- U.S. Environmental Protection Agency, "All EPA Emission Standards", https://www.epa.gov/emission-standards-reference-guide/all-epa-emission-standards
+
+- U.S. Environmental Protection Agency, "EPA Fact Sheet - Social Cost of Carbon", https://www.epa.gov/sites/production/files/2016-12/documents/social_cost_of_carbon_fact_sheet.pdf
+
+- U.S. Environmental Protection Agency, "Fuel Economy", https://www.epa.gov/fueleconomy
+
+- U.S. Environmental Protection Agency, "MOVES and Other Mobile Source Emissions Models", https://www.epa.gov/moves
+
+- U.S. Environmental Protection Agency, "Mortality Risk Valuation", https://www.epa.gov/environmental-economics/mortality-risk-valuation
+
+- U.S. Environmental Protection Agency, "National Electric Energy Data System (NEEDS)", https://www.epa.gov/airmarkets/documentation-national-electric-energy-data-system-needs-v513
+
+- U.S. Environmental Protection Agency, "National Emissions Inventory (NEI)", https://www.epa.gov/air-emissions-inventories/
+
+- U.S. Environmental Protection Agency, "Power Profiler", https://www.epa.gov/energy/power-profiler
+
+- U.S. Environmental Protection Agency, "The Social Cost of Carbon", https://19january2017snapshot.epa.gov/climatechange/social-cost-carbon_.html
+
+- U.S. Environmental Protection Agency, "National Ambient Air Quality Standards", https://www.epa.gov/criteria-air-pollutants/naaqs-table
+
+- US Inflation Calculator, "US consumer price index", https://www.usinflationcalculator.com/inflation/consumer-price-index-and-annual-percent-changes-from-1913-to-2008/
+
+
+*All of the above links were accessable as of November 1, 2018.*
+

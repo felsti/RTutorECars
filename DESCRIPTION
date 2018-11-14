@@ -1,0 +1,12 @@
+Package: RTutorECars
+Type: Package
+Title: Environmental Costs and Benefits from Driving Electric Cars
+Version: 1.0
+Date: 2018-14-11
+Author: Felix Stickel
+Maintainer: Felix Stickel <felix.stickel@uni-ulm.de>
+Description: A RTutor problem set to interactively calculate and analyze environmental damages from driving electric cars
+License:
+	Problem set content: Creative Commons (CC BY-SA)
+	Package code: GPL >= 2.0
+Depends: RTutor, dplyr, ggplot2, choroplethr, lfe, gridExtra, evd, htmlTable, stargazer, magick, reshape2

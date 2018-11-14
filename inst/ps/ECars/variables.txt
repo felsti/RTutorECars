@@ -1,0 +1,78 @@
+orgvar | var | descr
+fips | fips | FIPS-county code, a unique identifier for each U.S. county
+state | state | U.S. state
+countyname | countyname | name of the U.S. county
+urabn | urban | describes, whether a county is an urban region or not; TRUE, if the county belongs to a metropolitan statistical area, FALSE otherwise
+vmt | vmt | vehicle miles traveled, a relative measure of the total miles which are traveled by car in the specific county per year
+model | model | car model
+mpg | mpg | miles per gallon, a measure of fuel consumption
+co2edam | co2edam | damages from carbon dioxide
+pm25dam | pm25dam | damages from particulate matter
+so2dam | so2dam | damages from sulfur dioxide
+noxdam | noxdam | damages from nitrogen oxides
+vocdam | vocdam | damages from volatile organic compounds
+G_Veh_Dam_full | G_Veh_Dam_full | sum of the damages from all of the considered pollutants for gasoline vehicles
+mean_damage | mean_damage | vmt-weighted U.S. mean of damages
+electriccar | electriccar | electric car model
+kwhrsmile | kwhrsmile | electricity consumption in kilowatt hours per mile
+monthcode | monthcode | number of the month (1 - January, ...)
+days | days | number of days in the month (January - 31, ...)
+county | county | U.S. county name
+avgdailymaxairtemperaturef | avgdailymaxairtemperaturef | average daily maximum air temperature in degrees Fahrenheit
+avg_kwhrsmile | avg_kwhrsmile | temperature-adjusted electricity consumption in kilowatt hours per mile
+FACILITY_NAME | FACILITY_NAME | name of the power plant
+OP_DATE | OP_DATE | date of operation
+OP_HOUR | OP_HOUR | hour of operation
+OP_MONTH | OP_MONTH | month of operation
+grossgen_MWh | grossgen_MWh | total generation of the power plant in megawatt hours
+CO2_tons | CO2_tons | amount of emitted CO2 in tons
+load | load | electricity load in the ERCOT region
+avg_load | avg_load | average load during a specific hour of the day in the ERCOT region
+ercot | ercot | Texas NERC region
+wecc | wecc | Western NERC region
+frcc | frcc | Florida NERC region
+miso | miso | Mid West NERC region
+npcc | npcc | North East NERC region
+rfc | rfc | Mid Atlantic NERC region
+serc | serc | South East NERC region
+spp | spp | Kansas-Oklahoma NERC region
+ca | ca | California NERC region
+hour | hour | hour of the day
+flat | flat | a charging profile, where electricity is charged evenly throughout the day
+prof14 | prof14 | a charging profile, where electricity is charged during hours 1-4 of the day
+EPRIProf | EPRIProf | a charging profile following the Electric Power Research Institute
+prof58 | prof58 | a charging profile, where electricity is charged during hours 5-8 of the day
+prof912 | prof912 | a charging profile, where electricity is charged during hours 9-12 of the day
+prof1316 | prof1316 | a charging profile, where electricity is charged during hours 13-16 of the day
+prof1720 | prof1720 | a charging profile, where electricity is charged during hours 17-20 of the day
+prof2124 | prof2124 | a charging profile, where electricity is charged during hours 21-24 of the day
+NERC | NERC | NERC region
+msa | msa | metropolitan statistical area id number
+msaname | msaname | metropolitan statistical area name
+model_e | model_e | electric car model
+model_e_nr | model_e_nr | numeric identifier of electric car model
+MD_el | MD_el | marginal damages of electric car in cents per mile
+model_g | model_g | gasoline car model
+model_g_nr | model_g_nr | numeric identifier of gasoline car model
+MD_gas | MD_gas | marginal damages of gasoline car in cents per mile
+envbenefits | envbenefits | environmental benefits of electric car in cents per mile
+avg_subsidy | avg_subsidy | second-best purchase subsidy
+MD_gas_full | MD_gas_full | full marginal damages of gasoline car in cents per mile
+MD_gas_global | MD_gas_global | global marginal damages of gasoline car in cents per mile (from CO2)
+MD_gas_local | MD_gas_local | local marginal damages of gasoline car in cents per mile (from pollutants other than CO2)
+MD_gas_state_local | MD_gas_state_local | local marginal damages of gasoline car in cents per mile which stay within state of origin
+MD_gas_county_local | MD_gas_county_local | local marginal damages of gasoline car in cents per mile which stay within county of origin
+MD_el_full | MD_el_full | full marginal damages of electric car in cents per mile
+MD_el_global | MD_el_global | global marginal damages of electric car in cents per mile (from CO2)
+MD_el_local | MD_el_local | local marginal damages of electric car in cents per mile (from pollutants other than CO2)
+MD_el_state_local | MD_el_state_local | local marginal damages of electric car in cents per mile which stay within state of origin
+MD_el_county_local | MD_el_county_local | local marginal damages of electric car in cents per mile which stay within county of origin
+envbenefits_local | envbenefits_local | environmental benefits when only considering local damages (from pollutants other than CO2)
+envbenefits_global | envbenefits_global | environmental benefits when only considering global damages (from CO2)
+avg_subsidy_full | avg_subsidy_full | second-best purchase subsidy when considering full damages
+avg_subsidy_native | avg_subsidy_native | second-best purchase subsidy when only considering state native damages
+subsidy | subsidy | actual purchase subsidy in dollars
+all_policies | all_policies | total number of policies concerning electric vehicles
+all_incentives | all_incentives | number of policies concerning electric vehicles which are classified as incentives
+significant_incentives | significant_incentives | number of policies concerning electric vehicles which are classified as significant incentives
+
