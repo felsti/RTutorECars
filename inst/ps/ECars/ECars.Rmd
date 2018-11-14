@@ -997,7 +997,7 @@ ggplot(data = plotdat, aes(x = group, y = means)) +
                             "Toyota Rav4" = "Toyota Rav4")) +
   geom_violin(data= dat, aes(x = group, y = value), fill = "grey60") +
   geom_jitter(data= dat, aes(x = group, y = value, colour=factor(urban)),
-              shape = 1, width = .1, stroke=0, alpha=0.12) +
+              shape = 1, width = .1, stroke=0.5, alpha=0.12) +
   geom_segment(aes(x=rep(1:11)-0.25, xend=rep(1:11)+0.25, yend=means),
                size=1.5) +
   guides(fill=FALSE, color=FALSE) + 

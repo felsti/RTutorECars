@@ -16,7 +16,7 @@ ps.name = "ECars"; sol.file = paste0(ps.name,"_sol.Rmd")
 libs = c("dplyr", "ggplot2", "choroplethr", "lfe", "gridExtra", "evd", "htmlTable", "stargazer", "magick", "reshape2") # character vector of all packages you load in the problem set
 name.rmd.chunks(sol.file) # set auto chunk names in this file
 create.ps(sol.file=sol.file, ps.name=ps.name, user.name=NULL,libs=libs, stop.when.finished=FALSE, addons="quiz", extra.code.file="dp.R", var.txt.file ="variables.txt")
-show.shiny.ps(ps.name, load.sav=FALSE,  sample.solution=TRUE, is.solved=FALSE, catch.errors=TRUE, launch.browser=TRUE)
+show.shiny.ps(ps.name, load.sav=FALSE,  sample.solution=TRUE, is.solved=TRUE, catch.errors=TRUE, launch.browser=TRUE)
 stop.without.error()
 
 rtutor.package.skel(sol.file=sol.file, ps.name=ps.name,libs=libs,
@@ -1371,7 +1371,7 @@ ggplot(data = plotdat, aes(x = group, y = means)) +
                             "Toyota Rav4" = "Toyota Rav4")) +
   geom_violin(data= dat, aes(x = group, y = value), fill = "grey60") +
   geom_jitter(data= dat, aes(x = group, y = value, colour=factor(urban)),
-              shape = 1, width = .1, stroke=0, alpha=0.12) +
+              shape = 1, width = .1, stroke=0.5, alpha=0.12) +
   geom_segment(aes(x=rep(1:11)-0.25, xend=rep(1:11)+0.25, yend=means),
                size=1.5) +
   guides(fill=FALSE, color=FALSE) + 
