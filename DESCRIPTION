@@ -9,4 +9,4 @@ Description: A RTutor problem set to interactively calculate and analyze environ
 License:
 	Problem set content: Creative Commons (CC BY-SA)
 	Package code: GPL >= 2.0
-Depends: RTutor, dplyr, ggplot2, choroplethr, lfe, gridExtra, evd, htmlTable, stargazer, magick, reshape2
+Depends: RTutor, dplyr, ggplot2, choroplethr, lfe, gridExtra, evd, htmlTable, stargazer, magick, reshape2, choroplethrMaps
